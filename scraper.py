@@ -28,7 +28,7 @@ import time
 from datetime import datetime, timezone
 from email.mime.text import MIMEText
 from pathlib import Path
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 import requests
 from bs4 import BeautifulSoup
@@ -53,6 +53,34 @@ EXCLUDE_TERMS = [
     r"student staff", r"attendant", r"front desk", r"desk assistant",
     r"custod", r"housekeep", r"maintenance", r"cook", r"chef", r"security guard",
     r"admission", r"nurse", r"physician", r"medical", r"psychiatr",
+    r"case manager", r"caseworker", r"social worker", r"support worker",
+    r"community living", r"group home", r"youth", r"employee housing",
+    r"recreation program", r"\bjobs\b",
+]
+
+GENERAL_BOARD_ALLOW_TERMS = [
+    r"\buniversity\b", r"\buniversit[eé]\b", r"\bpost[- ]secondary\b",
+    r"\bhigher education\b", r"\bpolytechnic\b", r"\bc[eé]gep\b",
+    r"\bstudent housing\b", r"\bstudent residence\b",
+    r"\bcampus housing\b", r"\bcampus residence\b",
+    r"\bcollege residence\b", r"\bcollege housing\b",
+    r"\bcollege student life\b", r"\buniversity college\b",
+    r"\bubc\b", r"\bsfu\b", r"\btmu\b", r"\butoronto\b", r"\buottawa\b",
+    r"\busask\b", r"\buvic\b", r"\bmcgill\b", r"\bbrock\b",
+    r"\bmacewan\b", r"\blaurier\b", r"\bdalhousie\b", r"\bcarleton\b",
+    r"\bmcmaster\b", r"\bqueensu\b", r"\bqueen's\b", r"\bguelph\b",
+    r"\bwaterloo\b", r"\bwestern\b", r"\btrent\b", r"\bconcordia\b",
+    r"\bmemorial\b", r"\bmanitoba\b", r"\bwinnipeg\b", r"\bregina\b",
+    r"\blethbridge\b",
+]
+
+GENERAL_BOARD_DENY_TERMS = [
+    r"case manager", r"case management", r"caseworker", r"social worker",
+    r"support worker", r"community living", r"community services",
+    r"group home", r"youth", r"children", r"shelter", r"supportive housing",
+    r"mental health", r"addiction", r"crisis", r"hospital", r"long[- ]term care",
+    r"retirement", r"seniors?", r"employee housing", r"hospitality",
+    r"hotel", r"resort", r"recreation program",
 ]
 
 
@@ -63,6 +91,86 @@ def title_matches(text: str) -> bool:
     if not any(re.search(p, t) for p in ROLE_TERMS):
         return False
     if any(re.search(p, t) for p in EXCLUDE_TERMS):
+        return False
+    return True
+
+
+def general_board_context_matches(context: str) -> bool:
+    t = " ".join(context.lower().split())
+    if any(re.search(p, t) for p in GENERAL_BOARD_DENY_TERMS):
+        return False
+    return any(re.search(p, t) for p in GENERAL_BOARD_ALLOW_TERMS)
+
+
+def general_board_link_allowed(link: str) -> bool:
+    parsed = urlparse(link)
+    host = parsed.netloc.lower()
+    path = parsed.path.lower()
+
+    if "linkedin." in host:
+        return "/jobs/view/" in path
+    if "glassdoor." in host:
+        return "/job-listing/" in path
+    if "indeed." in host:
+        return not re.search(r"/q-.*-jobs\.html$", path) and path not in {"/jobs", "/jobs/"}
+    return True
+
+
+def match_allowed(board: dict, title: str, context: str, link: str = "") -> bool:
+    if not title_matches(title):
+        return False
+    if board.get("category") == "general_job_board":
+        if link and not general_board_link_allowed(link):
+            return False
+        return general_board_context_matches(context)
+    return True
+
+
+def surrounding_text(tag, max_chars: int = 2500) -> str:
+    """Get nearby listing text, usually title + employer + location on job boards."""
+    title_text = " ".join(tag.get_text(" ", strip=True).split())
+    candidates = []
+    for node in [tag, *tag.parents]:
+        if getattr(node, "name", None) in {"html", "body"}:
+            break
+        text = node.get_text(" ", strip=True)
+        if not text:
+            continue
+        text = " ".join(text.split())
+        if len(text) > max_chars or text in candidates:
+            continue
+
+        node_classes = " ".join(node.get("class", [])) if hasattr(node, "get") else ""
+        node_id = node.get("id", "") if hasattr(node, "get") else ""
+        marker = f"{node_classes} {node_id}".lower()
+        candidates.append(text)
+        if (
+            len(text) > len(title_text) + 10
+            and any(word in marker for word in ["card", "job", "result", "posting", "listing"])
+        ):
+            return text
+
+    for text in candidates:
+        if len(text) > len(title_text) + 10:
+            return text
+    return candidates[0] if candidates else ""
+
+
+def env_bool(name: str, default: bool) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
+def general_job_boards_enabled() -> bool:
+    return env_bool("INCLUDE_GENERAL_JOB_BOARDS", True)
+
+
+def should_scan_board(board: dict) -> bool:
+    if not board.get("enabled", True):
+        return False
+    if board.get("category") == "general_job_board" and not general_job_boards_enabled():
         return False
     return True
 
@@ -91,9 +199,20 @@ def fetch_js(url: str, wait_ms: int = 6000) -> str | None:
         with sync_playwright() as pw:
             browser = pw.chromium.launch()
             page = browser.new_page(user_agent=HEADERS["User-Agent"])
-            page.goto(url, wait_until="domcontentloaded", timeout=45000)
+            try:
+                page.goto(url, wait_until="domcontentloaded", timeout=45000)
+            except Exception as nav_error:
+                print(f"  [warn] JS navigation issue for {url}: {nav_error}", file=sys.stderr)
+                try:
+                    page.evaluate("window.stop()")
+                except Exception:
+                    pass
             page.wait_for_timeout(wait_ms)
-            html = page.content()
+            try:
+                html = page.content()
+            except Exception as content_error:
+                print(f"  [warn] JS content read failed for {url}: {content_error}", file=sys.stderr)
+                html = ""
             browser.close()
             return html
     except Exception as e:
@@ -138,15 +257,15 @@ def scan_board(board: dict) -> list[dict]:
         text = a.get_text(" ", strip=True)
         if not text or len(text) > 140:
             continue
-        if title_matches(text):
-            link = urljoin(board["url"], a["href"])
+        link = urljoin(board["url"], a["href"])
+        if match_allowed(board, text, surrounding_text(a), link):
             matches.append({"board": board["name"], "title": text, "link": link})
 
     # Fallback: some boards render titles in headings/rows without direct links
-    if not matches:
+    if not matches and board.get("category") != "general_job_board":
         for tag in soup.find_all(["h1", "h2", "h3", "h4", "td", "li", "span", "div"]):
             text = tag.get_text(" ", strip=True)
-            if text and len(text) <= 140 and title_matches(text):
+            if text and len(text) <= 140 and match_allowed(board, text, surrounding_text(tag)):
                 matches.append({"board": board["name"], "title": text, "link": board["url"]})
 
     # de-dupe within the page
@@ -249,17 +368,158 @@ def send_sms(new_jobs: list[dict]) -> None:
         print(f"  [warn] SMS send failed: {e}", file=sys.stderr)
 
 
+def send_telegram(new_jobs: list[dict]) -> None:
+    """Optional phone push notification via Telegram.
+    Short body only - full details and links go out by email."""
+    token = os.environ.get("ALERT_TELEGRAM_BOT_TOKEN")
+    chat_id = os.environ.get("ALERT_TELEGRAM_CHAT_ID")
+    if not token or not chat_id:
+        return
+
+    titles = ", ".join(j["title"] for j in new_jobs[:3])
+    body = (
+        f"RLC Watch: {len(new_jobs)} new posting(s). "
+        f"{titles}. Check soupsearching@gmail.com for links."
+    )
+    if len(body) > 900:
+        body = body[:897] + "..."
+
+    try:
+        r = requests.post(
+            f"https://api.telegram.org/bot{token}/sendMessage",
+            json={"chat_id": chat_id, "text": body},
+            timeout=15,
+        )
+        r.raise_for_status()
+        data = r.json()
+        if not data.get("ok"):
+            raise RuntimeError(data.get("description", "Telegram API returned ok=false"))
+        print("[ok] sent Telegram push")
+    except Exception as e:
+        print(f"  [warn] Telegram send failed: {e}", file=sys.stderr)
+
+
+def status_sms_hours() -> float:
+    raw = os.environ.get("ALERT_STATUS_SMS_HOURS", "").strip()
+    if not raw:
+        return 0
+    try:
+        return max(0, float(raw))
+    except ValueError:
+        print(f"  [warn] invalid ALERT_STATUS_SMS_HOURS={raw!r}; status SMS disabled", file=sys.stderr)
+        return 0
+
+
+def status_email_hours() -> float:
+    raw = os.environ.get("ALERT_STATUS_EMAIL_HOURS", "").strip()
+    if not raw:
+        return 0
+    try:
+        return max(0, float(raw))
+    except ValueError:
+        print(f"  [warn] invalid ALERT_STATUS_EMAIL_HOURS={raw!r}; status email disabled", file=sys.stderr)
+        return 0
+
+
+def status_sms_due(state: dict, now_dt: datetime, hours: float) -> bool:
+    if hours <= 0:
+        return False
+    last = state.get("last_status_sms")
+    if not last:
+        return True
+    try:
+        last_dt = datetime.fromisoformat(last)
+    except ValueError:
+        return True
+    return (now_dt - last_dt).total_seconds() >= hours * 3600
+
+
+def status_email_due(state: dict, now_dt: datetime, hours: float) -> bool:
+    if hours <= 0:
+        return False
+    last = state.get("last_status_email")
+    if not last:
+        return True
+    try:
+        last_dt = datetime.fromisoformat(last)
+    except ValueError:
+        return True
+    return (now_dt - last_dt).total_seconds() >= hours * 3600
+
+
+def send_status_email(enabled_board_count: int) -> bool:
+    """Optional routine email confirming the watcher is alive."""
+    user = os.environ.get("ALERT_EMAIL_USER")
+    pw = os.environ.get("ALERT_EMAIL_APP_PASSWORD")
+    to = os.environ.get("ALERT_EMAIL_TO", user)
+    if not user or not pw:
+        return False
+
+    general_boards = "on" if general_job_boards_enabled() else "off"
+    body = (
+        "RLC Watch is still running.\n\n"
+        f"Checked {enabled_board_count} board(s).\n"
+        "No new postings found in this status window.\n"
+        f"General boards: {general_boards}.\n"
+    )
+
+    msg = MIMEText(body)
+    msg["Subject"] = "[RLC Watch] Still running"
+    msg["From"] = user
+    msg["To"] = to
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
+            s.login(user, pw)
+            s.sendmail(user, [to], msg.as_string())
+        print(f"[ok] sent status email to {to}")
+        return True
+    except Exception as e:
+        print(f"  [warn] status email send failed: {e}", file=sys.stderr)
+        return False
+
+
+def send_status_sms(enabled_board_count: int) -> bool:
+    """Optional routine text confirming the watcher is alive."""
+    user = os.environ.get("ALERT_EMAIL_USER")
+    pw = os.environ.get("ALERT_EMAIL_APP_PASSWORD")
+    sms_to = os.environ.get("ALERT_SMS_TO")
+    if not sms_to or not user or not pw:
+        return False
+
+    general_boards = "on" if general_job_boards_enabled() else "off"
+    body = (
+        f"RLC Watch alive: checked {enabled_board_count} board(s), no new postings. "
+        f"General boards {general_boards}."
+    )
+
+    msg = MIMEText(body)
+    msg["Subject"] = ""
+    msg["From"] = user
+    msg["To"] = sms_to
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
+            s.login(user, pw)
+            s.sendmail(user, [sms_to], msg.as_string())
+        print(f"[ok] sent status text to {sms_to}")
+        return True
+    except Exception as e:
+        print(f"  [warn] status SMS send failed: {e}", file=sys.stderr)
+        return False
+
+
 # ---- main -----------------------------------------------------------------
 
 def run_once(dry_run: bool) -> None:
     boards = json.loads(BOARDS_FILE.read_text())
     state = load_state()
-    now = datetime.now(timezone.utc).isoformat()
+    now_dt = datetime.now(timezone.utc)
+    now = now_dt.isoformat()
+    enabled_boards = [board for board in boards if should_scan_board(board)]
 
     all_new = []
-    for board in boards:
-        if not board.get("enabled", True):
-            continue
+    for board in enabled_boards:
         print(f"[scan] {board['name']}")
         for m in scan_board(board):
             fp = fingerprint(m)
@@ -274,8 +534,19 @@ def run_once(dry_run: bool) -> None:
     if all_new:
         send_email(all_new)
         send_sms(all_new)
+        send_telegram(all_new)
+        if status_sms_hours() > 0:
+            state["last_status_sms"] = now
+        if status_email_hours() > 0:
+            state["last_status_email"] = now
     else:
         print("[ok] no new postings")
+        sms_hours = status_sms_hours()
+        if status_sms_due(state, now_dt, sms_hours) and send_status_sms(len(enabled_boards)):
+            state["last_status_sms"] = now
+        email_hours = status_email_hours()
+        if status_email_due(state, now_dt, email_hours) and send_status_email(len(enabled_boards)):
+            state["last_status_email"] = now
     save_state(state)
 
 

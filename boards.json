@@ -129,12 +129,12 @@
   {"name": "University of Victoria", "url": "https://uvic.mua.hrdepartment.com/hr/ats/JobSearch/viewAll", "mode": "html", "enabled": true,
    "notes": "CONFIRMED via research: plain fetch returns live postings, including an 'Associate Director, Residence Life' as of Apr 2026 (won't match our filter - Director isn't a ROLE_TERM - but signals coordinator-level movement may follow)."},
 
-  {"name": "Indeed Canada", "url": "https://ca.indeed.com/jobs?q=residence+life+coordinator&l=Canada", "mode": "js", "enabled": true,
+  {"name": "Indeed Canada", "url": "https://ca.indeed.com/jobs?q=residence+life+coordinator&l=Canada", "mode": "js", "enabled": true, "category": "general_job_board",
    "notes": "VERIFIED: public search results, no login required. Found real matches (e.g. 'Residence Coordinator', 'Residence Coordinator / Case Manager') via plain anchor-tag scan. Expect noise from non-university employers (group homes, youth services) - title filter already excludes most non-role terms; she reviews details herself."},
 
-  {"name": "LinkedIn Jobs", "url": "https://www.linkedin.com/jobs/search?keywords=residence%20life%20coordinator&location=Canada", "mode": "js", "enabled": true,
+  {"name": "LinkedIn Jobs", "url": "https://www.linkedin.com/jobs/search?keywords=residence%20life%20coordinator&location=Canada", "mode": "js", "enabled": true, "category": "general_job_board",
    "notes": "VERIFIED: logged-out search results render enough postings to scrape (found 'Residence Life Coordinator', 'Residence Facility Operations Coordinator', etc). No login/session needed - deliberately NOT using credentials here since LinkedIn aggressively flags automated logins; this is anonymous browsing only. Results may be capped/rate-limited over time - if matches drop to zero unexpectedly, re-verify with a manual browser visit before assuming it's broken."},
 
-  {"name": "Glassdoor Canada", "url": "https://www.glassdoor.ca/Job/jobs.htm?sc.keyword=residence+life+coordinator&locT=N&locId=3", "mode": "js", "enabled": true,
+  {"name": "Glassdoor Canada", "url": "https://www.glassdoor.ca/Job/jobs.htm?sc.keyword=residence+life+coordinator&locT=N&locId=3", "mode": "js", "enabled": true, "category": "general_job_board",
    "notes": "VERIFIED: public search results, no login required, found real matches (e.g. 'Residence Coordinator', 'Residence Coordinator / Case Manager'). Same noise caveat as Indeed - non-university employers will appear, filter + manual review handles it."}
 ]

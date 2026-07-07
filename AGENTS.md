@@ -37,10 +37,24 @@ detection (she checks details herself).
 - Alerts: Gmail SMTP (SSL 465) for email, plus optional SMS via email-to-SMS
   carrier gateway (e.g. `5551234567@txt.bell.ca`). SMS body is a short summary
   only; full details/links go out by email. Both are best-effort — if
-  `ALERT_SMS_TO` isn't set, SMS is silently skipped.
+  `ALERT_SMS_TO` isn't set, SMS is silently skipped. Optional routine "still
+  alive" texts are controlled by `ALERT_STATUS_SMS_HOURS`; routine status
+  emails are controlled by `ALERT_STATUS_EMAIL_HOURS`.
+- Virgin Plus email-to-SMS did not deliver locally in July 2026 (`@vmobile.ca`
+  and `@txt.virginplus.ca` failed silently), so local settings currently use
+  Gmail push notifications/status email rather than SMS gateway delivery.
+- Optional Telegram push notifications can be configured with
+  `ALERT_TELEGRAM_BOT_TOKEN` and `ALERT_TELEGRAM_CHAT_ID`. Telegram messages are
+  short "new hits found, check email" pings only; email remains the source for
+  full links/details.
 - Credentials/config: `local_settings.json` (gitignored — never commit it),
   copied from `local_settings.example.json`. Loaded into the environment at
   startup without overriding real env vars if already set.
+- General job boards (Indeed/LinkedIn/Glassdoor) are tagged as
+  `category: "general_job_board"` and can be toggled with
+  `INCLUDE_GENERAL_JOB_BOARDS`. When enabled, general boards get an extra
+  university/post-secondary context filter so "Residence Coordinator" social
+  service/case-manager roles are rejected.
 - Two run modes:
   - One-shot: `python scraper.py` (intended for Windows Task Scheduler or a
     manual run).
@@ -67,6 +81,9 @@ detection (she checks details herself).
   St. Mike's, Woodsworth, New, Innis, and University College. Some of these
   pages mainly post student-staff roles; the existing title filter excludes
   Don/front-desk noise while preserving RLC-tier titles.
+- Indeed/LinkedIn/Glassdoor remain configured and locally enabled with the
+  university-context filter. Turn `INCLUDE_GENERAL_JOB_BOARDS` to `false` in
+  `local_settings.json` if aggregator boards get too noisy again.
 - Several `js`-mode boards rely on scanning the FULL rendered listing rather
   than a server-side keyword filter (confirmed true for U of A Oracle — its
   `?keyword=` param doesn't actually filter). This is fine because

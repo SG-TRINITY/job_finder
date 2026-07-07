@@ -4,6 +4,20 @@
   "ALERT_EMAIL_TO": "youraddress@gmail.com",
 
   "ALERT_SMS_TO": "REPLACE_WITH_yournumber@yourcarrier-gateway (optional - leave out to skip texting)",
+  "ALERT_TELEGRAM_BOT_TOKEN": "",
+  "ALERT_TELEGRAM_CHAT_ID": "",
+
+  "INCLUDE_GENERAL_JOB_BOARDS": "true",
+  "ALERT_STATUS_SMS_HOURS": "0",
+  "ALERT_STATUS_EMAIL_HOURS": "24",
+
+  "_settings_reference": {
+    "INCLUDE_GENERAL_JOB_BOARDS": "Set to true to include filtered Indeed/LinkedIn/Glassdoor university-context results; false scans university/association boards only.",
+    "ALERT_STATUS_SMS_HOURS": "Optional routine SMS heartbeat. 24 means one 'still alive' text about once per day; 0 disables it.",
+    "ALERT_STATUS_EMAIL_HOURS": "Optional routine email heartbeat. 24 means one 'still alive' email about once per day; 0 disables it.",
+    "ALERT_TELEGRAM_BOT_TOKEN": "Optional Telegram bot token for phone push notifications when new postings are found.",
+    "ALERT_TELEGRAM_CHAT_ID": "Optional Telegram chat ID to receive short hit notifications; full links still go by email."
+  },
 
   "_carrier_gateways_reference": {
     "Rogers/Chatr": "number@pcs.rogers.com",
