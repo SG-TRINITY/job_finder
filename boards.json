@@ -1,0 +1,119 @@
+[
+  {"name": "Campus Living Centres (all properties)", "url": "https://campusliv.hrmdirect.com/employment/job-openings.php?search=true&dept=-1&city=-1&state=-1", "mode": "html", "enabled": true,
+   "notes": "VERIFIED plain HTML. One board covers every CLC property in Canada (TRU Kamloops, Okanagan College Kelowna, Algonquin Ottawa, Seneca King City, etc)."},
+
+  {"name": "King's University College (Western)", "url": "https://kingsuwo.hiringplatform.ca/list/careers", "mode": "html", "enabled": true,
+   "notes": "VERIFIED. LIVE POSTING as of Jul 2026: Residence Coordinator, closes Jul 8 2026, ref 202606-05C."},
+
+  {"name": "CACUSS Career Centre", "url": "https://cacuss.ca/networking/apply_now.aspx?view=2", "mode": "html", "enabled": true,
+   "notes": "National aggregator. Confirm with --dry-run; switch mode to js if empty."},
+
+  {"name": "OACUHO Job Postings", "url": "https://oacuho.com/cgi/page.cgi/job-postings.html", "mode": "html", "enabled": true,
+   "notes": "CONFIRMED live via research: plain CGI HTML, no JS needed. Ontario housing-officer aggregator - highest signal for ON."},
+
+  {"name": "UBC (Van + Okanagan) - Workday", "host": "ubc.wd10.myworkdayjobs.com", "tenant": "ubc", "site": "ubcstaffjobs", "search_text": "residence", "mode": "workday", "enabled": true,
+   "notes": "Workday JSON API. Tenant/site VERIFIED. Covers both UBC Vancouver and UBC Okanagan (Kelowna)."},
+
+  {"name": "McGill - Workday", "host": "mcgill.wd3.myworkdayjobs.com", "tenant": "mcgill", "site": "McGill_Careers", "search_text": "residence", "mode": "workday", "enabled": true,
+   "notes": "Site slug CONFIRMED via research (McGill_Careers, capitalized)."},
+
+  {"name": "University of Ottawa - Workday", "host": "uottawa.wd3.myworkdayjobs.com", "tenant": "uottawa", "site": "uOttawa_External_Career_Site", "search_text": "residence", "mode": "workday", "enabled": true,
+   "notes": "Workday CONFIRMED via research. French site is the fr-CA variant, not scraped separately."},
+
+  {"name": "Brock University - Workday", "host": "brocku.wd3.myworkdayjobs.com", "tenant": "brocku", "site": "brocku_careers", "search_text": "residence", "mode": "workday", "enabled": true,
+   "notes": "Workday CONFIRMED via research, live postings visible."},
+
+  {"name": "University of Alberta - Oracle", "url": "https://iaejup.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/UOA-Careers/jobs?keyword=residence", "mode": "js", "enabled": true,
+   "notes": "JS render via Playwright. TOP TARGET. CONFIRMED: the ?keyword= param does NOT filter server-side - page just shows the full site-wide posting list (14 as of Jul 2026); scraper text-scans the whole rendered list regardless, so this still works. Also set the portal's native alert as backup."},
+
+  {"name": "MacEwan University", "url": "https://www.macewan.ca/about-macewan/careers/opportunities/", "mode": "js", "enabled": true,
+   "notes": "JS render via Playwright. Live-in role with furnished suite historically."},
+
+  {"name": "University of Calgary", "url": "https://careers.ucalgary.ca", "mode": "js", "enabled": true,
+   "notes": "Native alerts available too. If dry-run finds nothing when jobs exist, replace with the search-results URL for 'residence'."},
+
+  {"name": "U of T (all campuses)", "url": "https://jobs.utoronto.ca", "mode": "js", "enabled": true,
+   "notes": "SuccessFactors portal, covers St. George/UTM/UTSC. NOTE: federated colleges (Victoria, Trinity, St Mike's, Woodsworth, New, Innis, University College) hire separately on their own HR pages - not covered here, add separately if URLs found."},
+
+  {"name": "Toronto Metropolitan University (TMU)", "url": "https://careers.torontomu.ca/psc/hrcgprd/EMPLOYEE/HRMS/c/HRS_HRAM_FL.HRS_CG_SEARCH_FL.GBL?FOCUS=Applicant", "mode": "js", "enabled": true,
+   "notes": "PeopleSoft Fluid UI confirmed via research. Posted Residence Life Manager, Programming in past cycles - active shop. No keyword URL param; scraper text-scans full list."},
+
+  {"name": "York University", "url": "https://jobs-ca.technomedia.com/yorkuniversity/", "mode": "js", "enabled": true,
+   "notes": "Technomedia ATS confirmed via research, live postings visible. Session-encoded URLs - scraper text-scans full list (will include noise like 'Housing Custodian', excluded by our filter terms)."},
+
+  {"name": "McMaster University", "url": "https://careers.mcmaster.ca/psp/prcsprd/EMPLOYEE/HRMS/c/HRS_HRAM.HRS_APP_SCHJOB.GBL?Page=HRS_APP_SCHJOB&Action=U&FOCUS=Applicant&SiteId=1001&customTab=MCM_STAFF_POS&IgnoreParamTempl=customTab", "mode": "js", "enabled": true,
+   "notes": "PeopleSoft HCM, fluid/JS-rendered, confirmed via research."},
+
+  {"name": "Wilfrid Laurier University", "url": "https://careers.wlu.ca/go/All-jobs/504947/", "mode": "html", "enabled": true,
+   "notes": "SAP SuccessFactors '/go/' listing page is server-rendered (confirmed via research), unlike the SPA version. Posted Residence Life Area Coordinator Nov 2025."},
+
+  {"name": "Waterloo - iCIMS", "url": "https://careers-uwaterloo.icims.com/jobs/search?ss=1&searchKeyword=residence", "mode": "js", "enabled": true, "notes": "iCIMS search URL pattern, native email alerts also available."},
+
+  {"name": "University of Guelph", "url": "https://career47.sapsf.com/career?career_company=universi18&lang=en_US&company=universi18", "mode": "js", "enabled": true,
+   "notes": "SAP SuccessFactors (Angular career site) confirmed via research. Posted Residence Life Manager Apr 2026."},
+
+  {"name": "Western University", "url": "https://recruit.uwo.ca/psc/hrprdwebER/EMPLOYEE/HRMS/c/HRS_HRAM_FL.HRS_CG_SEARCH_FL.GBL?Page=HRS_APP_SCHJOB_FL&Action=U", "mode": "js", "enabled": true,
+   "notes": "PeopleSoft Fluid confirmed via research. NOTE: actual student-leadership 'Residence Staff' hiring runs separately via housing.uwo.ca, not this ATS - this board is for staff-level RLC/RLM postings only. Huron and King's affiliates hire on their own pages (King's already covered above)."},
+
+  {"name": "Carleton University", "url": "https://carleton.njoyn.com/cl2/xweb/xweb.asp?page=joblisting&CLID=53443", "mode": "html", "enabled": true,
+   "notes": "NJOYN confirmed via research, live postings visible. No keyword GET param - scraper text-scans full list."},
+
+  {"name": "Queen's University", "url": "https://queensu.njoyn.com/cl4/xweb/Xweb.asp?page=joblisting&CLID=74827", "mode": "html", "enabled": true,
+   "notes": "NJOYN ('CareerQ') confirmed via research, ~40 live postings. URL contains a tbtoken that may expire - re-verify if dry-run starts failing."},
+
+  {"name": "Ontario Tech University", "url": "https://ontariotechu.csod.com/ux/ats/careersite/4/home?c=ontariotechu", "mode": "js", "enabled": true,
+   "notes": "Cornerstone OnDemand (CSOD) confirmed via research. Verify employer on any match (university vs CLC-operated residence)."},
+
+  {"name": "University of Windsor", "url": "https://efhc.fa.ca2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1", "mode": "js", "enabled": true,
+   "notes": "Oracle Fusion/Cloud HCM ('UWinsite People') confirmed via research."},
+
+  {"name": "Trent University", "url": "https://employmenttest.trentu.ca/default", "mode": "js", "enabled": false,
+   "notes": "LOW CONFIDENCE - research agent found this via HR page link but the 'test' in the domain is suspicious; may not be the live production ATS. Verify manually before enabling."},
+
+  {"name": "Concordia University (Montreal)", "url": "https://career17.sapsf.com/career?company=universitc", "mode": "js", "enabled": true,
+   "notes": "SAP SuccessFactors confirmed via research."},
+
+  {"name": "Concordia University of Edmonton", "url": "https://concordiaedmonton.startdate.ca/#/", "mode": "js", "enabled": true,
+   "notes": "StartDate ATS, hash-routed SPA - distinct school from Concordia Montreal above. If Playwright can't render hash-routed content, disable and check manually."},
+
+  {"name": "Dalhousie University", "url": "https://dal.peopleadmin.ca/postings/search?query=residence", "mode": "html", "enabled": true,
+   "notes": "CONFIRMED via research: PeopleAdmin, query param verified live ('View Results (2)'). Biggest Atlantic residence operation."},
+
+  {"name": "Saint Mary's University (Halifax)", "url": "REPLACE_WITH_URL_FROM_YOUR_BROWSER", "mode": "js", "enabled": false,
+   "notes": "Research agent could not identify the staff ATS platform (only found student-facing Career360/Symplicity); needs manual follow-up. Same city as Dalhousie - two employers, one move."},
+
+  {"name": "Memorial University", "url": "https://www.mun.ca/hr/careers/external-job-postings/", "mode": "html", "enabled": true,
+   "notes": "Plain HTML listing confirmed via research, no vendor ATS branding. careers.mun.ca subdomain requires CAS login (internal-only), avoid that one."},
+
+  {"name": "U of Manitoba", "url": "https://viprecprod.ad.umanitoba.ca/default.aspx", "mode": "js", "enabled": true,
+   "notes": "DLGL-branded system. Research fetch hit a browser-compatibility gate page (suggests JS dependency) - if dry-run keeps returning nothing, verify manually."},
+
+  {"name": "University of Winnipeg", "url": "https://www.northstarats.com/University-of-Winnipeg", "mode": "js", "enabled": false,
+   "notes": "NorthStar ATS found via web search only, not independently confirmed live (direct site fetch returned 403). Enable once verified. Smaller residence op than U of Manitoba."},
+
+  {"name": "U of Saskatchewan", "url": "https://careers.usask.ca", "mode": "js", "enabled": true, "notes": "Posted Assistant Manager Student Life Mar 2026 - active shop. If dry-run empty when jobs exist, paste search-results URL."},
+
+  {"name": "University of Regina", "url": "https://urcareers.uregina.ca/postings/search?query=residence", "mode": "html", "enabled": true,
+   "notes": "PeopleAdmin confirmed via research (61 postings, keyword field present); query string constructed by analogy to Dalhousie/Lethbridge, not independently tested with 'residence' specifically."},
+
+  {"name": "Mount Royal University", "url": "https://mtroyalca.hua.hrsmart.com/hr/ats/JobSearch/index", "mode": "html", "enabled": true,
+   "notes": "HRSmart-based TMS confirmed via research. Posted Residence Life Coordinator in 2024 cycle. Keyword URL param not confirmed - scraper text-scans full list."},
+
+  {"name": "University of Lethbridge", "url": "https://uleth.peopleadmin.ca/postings/search?utf8=%E2%9C%93&query=residence&query_position_type_id=1&query_organizational_tier_3_id=any&commit=Search", "mode": "html", "enabled": true,
+   "notes": "PeopleAdmin CONFIRMED via research, exact query string captured live (position_type_id=1 is non-academic staff)."},
+
+  {"name": "SFU", "url": "https://tre.tbe.taleo.net/tre01/ats/careers/v2/jobSearch?org=SIMOFRAS&cws=37", "mode": "js", "enabled": true,
+   "notes": "Oracle Taleo confirmed via research (38 live postings seen). Same metro as UBC - two employers, one move."},
+
+  {"name": "University of Victoria", "url": "https://uvic.mua.hrdepartment.com/hr/ats/JobSearch/viewAll", "mode": "html", "enabled": true,
+   "notes": "CONFIRMED via research: plain fetch returns live postings, including an 'Associate Director, Residence Life' as of Apr 2026 (won't match our filter - Director isn't a ROLE_TERM - but signals coordinator-level movement may follow)."},
+
+  {"name": "Indeed Canada", "url": "https://ca.indeed.com/jobs?q=residence+life+coordinator&l=Canada", "mode": "js", "enabled": true,
+   "notes": "VERIFIED: public search results, no login required. Found real matches (e.g. 'Residence Coordinator', 'Residence Coordinator / Case Manager') via plain anchor-tag scan. Expect noise from non-university employers (group homes, youth services) - title filter already excludes most non-role terms; she reviews details herself."},
+
+  {"name": "LinkedIn Jobs", "url": "https://www.linkedin.com/jobs/search?keywords=residence%20life%20coordinator&location=Canada", "mode": "js", "enabled": true,
+   "notes": "VERIFIED: logged-out search results render enough postings to scrape (found 'Residence Life Coordinator', 'Residence Facility Operations Coordinator', etc). No login/session needed - deliberately NOT using credentials here since LinkedIn aggressively flags automated logins; this is anonymous browsing only. Results may be capped/rate-limited over time - if matches drop to zero unexpectedly, re-verify with a manual browser visit before assuming it's broken."},
+
+  {"name": "Glassdoor Canada", "url": "https://www.glassdoor.ca/Job/jobs.htm?sc.keyword=residence+life+coordinator&locT=N&locId=3", "mode": "js", "enabled": true,
+   "notes": "VERIFIED: public search results, no login required, found real matches (e.g. 'Residence Coordinator', 'Residence Coordinator / Case Manager'). Same noise caveat as Indeed - non-university employers will appear, filter + manual review handles it."}
+]

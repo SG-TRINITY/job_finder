@@ -1,0 +1,17 @@
+{
+  "ALERT_EMAIL_USER": "youraddress@gmail.com",
+  "ALERT_EMAIL_APP_PASSWORD": "your Gmail App Password (not your regular password - generate one at myaccount.google.com/apppasswords)",
+  "ALERT_EMAIL_TO": "youraddress@gmail.com",
+
+  "ALERT_SMS_TO": "REPLACE_WITH_yournumber@yourcarrier-gateway (optional - leave out to skip texting)",
+
+  "_carrier_gateways_reference": {
+    "Rogers/Chatr": "number@pcs.rogers.com",
+    "Fido": "number@fido.ca",
+    "Bell": "number@txt.bell.ca",
+    "Telus/Koodo": "number@msg.telus.com",
+    "Virgin Mobile": "number@vmobile.ca",
+    "Freedom Mobile": "number@txt.freedommobile.ca",
+    "_note": "number is your 10-digit phone number, no dashes/spaces. A few carriers have discontinued email-to-SMS - if texts never arrive, verify with your carrier."
+  }
+}
