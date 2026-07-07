@@ -33,7 +33,28 @@
    "notes": "Native alerts available too. If dry-run finds nothing when jobs exist, replace with the search-results URL for 'residence'."},
 
   {"name": "U of T (all campuses)", "url": "https://jobs.utoronto.ca", "mode": "js", "enabled": true,
-   "notes": "SuccessFactors portal, covers St. George/UTM/UTSC. NOTE: federated colleges (Victoria, Trinity, St Mike's, Woodsworth, New, Innis, University College) hire separately on their own HR pages - not covered here, add separately if URLs found."},
+   "notes": "SuccessFactors portal, covers St. George/UTM/UTSC central postings. U of T college-specific HR pages are covered by separate board entries below."},
+
+  {"name": "Victoria University (U of T)", "url": "https://jobs.dayforcehcm.com/victoriauniversity/CANDIDATEPORTAL", "mode": "js", "enabled": true,
+   "notes": "VERIFIED via Victoria University careers page. External opportunities are hosted in Dayforce; JS mode is required because the initial HTML only shows a loading shell."},
+
+  {"name": "Trinity College (U of T)", "url": "https://www.trinity.utoronto.ca/discover/about/working-at-trinity/career-opportunities/", "mode": "js", "enabled": true,
+   "notes": "VERIFIED via Trinity's Working at Trinity page. Use JS mode because local requests hit a certificate-chain error, while Chromium renders the careers page."},
+
+  {"name": "St. Michael's College (U of T)", "url": "https://stmikes.utoronto.ca/about-us/employment-opportunities", "mode": "html", "enabled": true,
+   "notes": "VERIFIED plain HTML employment page with current staff/faculty postings."},
+
+  {"name": "Woodsworth College Residence (U of T)", "url": "https://wdw.utoronto.ca/employment", "mode": "html", "enabled": true,
+   "notes": "VERIFIED plain HTML residence employment page. Mostly student residence roles; title filter excludes Don/front-desk noise."},
+
+  {"name": "New College ORSL (U of T)", "url": "https://www.newcollege.utoronto.ca/student-experience/orsl/jobs-and-volunteer-opportunities/", "mode": "html", "enabled": true,
+   "notes": "VERIFIED plain HTML Office of Residence and Student Life jobs page. Mostly student leadership/work-study roles; title filter excludes Don-level noise."},
+
+  {"name": "Innis College (U of T)", "url": "https://innis.utoronto.ca/staff-faculty-jobs/", "mode": "html", "enabled": true,
+   "notes": "VERIFIED plain HTML staff/faculty jobs page. Separate from student jobs and staff directory to avoid current-staff false positives."},
+
+  {"name": "University College (U of T)", "url": "https://www.uc.utoronto.ca/job-opportunities", "mode": "js", "enabled": true,
+   "notes": "VERIFIED via University College Human Resources > Job Opportunities page. Use JS mode because plain requests can return 403 locally."},
 
   {"name": "Toronto Metropolitan University (TMU)", "url": "https://careers.torontomu.ca/psc/hrcgprd/EMPLOYEE/HRMS/c/HRS_HRAM_FL.HRS_CG_SEARCH_FL.GBL?FOCUS=Applicant", "mode": "js", "enabled": true,
    "notes": "PeopleSoft Fluid UI confirmed via research. Posted Residence Life Manager, Programming in past cycles - active shop. No keyword URL param; scraper text-scans full list."},
@@ -67,8 +88,8 @@
   {"name": "University of Windsor", "url": "https://efhc.fa.ca2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1", "mode": "js", "enabled": true,
    "notes": "Oracle Fusion/Cloud HCM ('UWinsite People') confirmed via research."},
 
-  {"name": "Trent University", "url": "https://employmenttest.trentu.ca/default", "mode": "js", "enabled": false,
-   "notes": "LOW CONFIDENCE - research agent found this via HR page link but the 'test' in the domain is suspicious; may not be the live production ATS. Verify manually before enabling."},
+  {"name": "Trent University", "url": "https://employment.trentu.ca/default", "mode": "js", "enabled": true,
+   "notes": "VERIFIED via Trent HR non-academic positions page. Production external recruitment site is employment.trentu.ca; old employmenttest.trentu.ca URL was replaced."},
 
   {"name": "Concordia University (Montreal)", "url": "https://career17.sapsf.com/career?company=universitc", "mode": "js", "enabled": true,
    "notes": "SAP SuccessFactors confirmed via research."},
@@ -79,8 +100,8 @@
   {"name": "Dalhousie University", "url": "https://dal.peopleadmin.ca/postings/search?query=residence", "mode": "html", "enabled": true,
    "notes": "CONFIRMED via research: PeopleAdmin, query param verified live ('View Results (2)'). Biggest Atlantic residence operation."},
 
-  {"name": "Saint Mary's University (Halifax)", "url": "REPLACE_WITH_URL_FROM_YOUR_BROWSER", "mode": "js", "enabled": false,
-   "notes": "Research agent could not identify the staff ATS platform (only found student-facing Career360/Symplicity); needs manual follow-up. Same city as Dalhousie - two employers, one move."},
+  {"name": "Saint Mary's University (Halifax)", "url": "https://www.smu.ca/about/staff-employment-opportunities.html", "mode": "js", "enabled": true,
+   "notes": "VERIFIED via official SMU staff employment page. Job links are injected by a CareerBeacon widget, so JS mode is required. Same city as Dalhousie - two employers, one move."},
 
   {"name": "Memorial University", "url": "https://www.mun.ca/hr/careers/external-job-postings/", "mode": "html", "enabled": true,
    "notes": "Plain HTML listing confirmed via research, no vendor ATS branding. careers.mun.ca subdomain requires CAS login (internal-only), avoid that one."},
@@ -88,8 +109,8 @@
   {"name": "U of Manitoba", "url": "https://viprecprod.ad.umanitoba.ca/default.aspx", "mode": "js", "enabled": true,
    "notes": "DLGL-branded system. Research fetch hit a browser-compatibility gate page (suggests JS dependency) - if dry-run keeps returning nothing, verify manually."},
 
-  {"name": "University of Winnipeg", "url": "https://www.northstarats.com/University-of-Winnipeg", "mode": "js", "enabled": false,
-   "notes": "NorthStar ATS found via web search only, not independently confirmed live (direct site fetch returned 403). Enable once verified. Smaller residence op than U of Manitoba."},
+  {"name": "University of Winnipeg", "url": "https://www.northstarats.com/University-of-Winnipeg", "mode": "html", "enabled": true,
+   "notes": "VERIFIED via official UWinnipeg pages linking to NorthStar ATS; plain HTML fetch returns current listings. Smaller residence op than U of Manitoba."},
 
   {"name": "U of Saskatchewan", "url": "https://careers.usask.ca", "mode": "js", "enabled": true, "notes": "Posted Assistant Manager Student Life Mar 2026 - active shop. If dry-run empty when jobs exist, paste search-results URL."},
 

@@ -183,9 +183,17 @@ def load_local_settings() -> None:
         return
     settings = json.loads(LOCAL_SETTINGS_FILE.read_text())
     for k, v in settings.items():
-        if k.startswith("_") or "REPLACE_WITH" in str(v):
+        value = str(v).strip()
+        placeholder = value.lower()
+        if (
+            k.startswith("_")
+            or not value
+            or "replace_with" in placeholder
+            or "youraddress@" in placeholder
+            or "your gmail app password" in placeholder
+        ):
             continue
-        os.environ.setdefault(k, str(v))
+        os.environ.setdefault(k, value)
 
 
 # ---- email / SMS ------------------------------------------------------------

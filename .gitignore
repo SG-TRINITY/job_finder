@@ -1,3 +1,4 @@
 local_settings.json
 __pycache__/
 *.pyc
+logs/

@@ -53,18 +53,20 @@ detection (she checks details herself).
 
 ## Current status / known gaps (the actual TODO)
 
-- 40 boards in `boards.json`, verified reachable via a full dry-run pass covering
+- 47 enabled boards in `boards.json`, verified/re-verified against live pages:
   every Canadian university career portal plus CACUSS, OACUHO, Indeed, LinkedIn,
   Glassdoor, and the CLC board (covers every CLC property in one request).
-- Still disabled/needs manual follow-up:
-  - Trent University — found URL looks like a non-production test domain,
-    verify manually before enabling.
-  - Saint Mary's University (Halifax) — staff ATS platform not identified.
-  - University of Winnipeg — NorthStar ATS URL found via search only, not
-    independently confirmed live (direct fetch got a 403).
-- U of T federated colleges (Victoria, Trinity, St. Mike's, Woodsworth, New,
-  Innis, University College) hire separately from the main U of T portal and
-  aren't covered yet — add if/when their HR page URLs are found.
+- Recently re-enabled after manual verification:
+  - Trent University now uses the production `https://employment.trentu.ca/default`
+    external recruitment site linked from Trent HR.
+  - Saint Mary's University (Halifax) uses the official staff employment page,
+    which injects CareerBeacon job links and therefore needs `js` mode.
+  - University of Winnipeg uses `https://www.northstarats.com/University-of-Winnipeg`,
+    confirmed through official UWinnipeg pages and plain HTML fetches.
+- U of T college-specific coverage has been added for Victoria, Trinity,
+  St. Mike's, Woodsworth, New, Innis, and University College. Some of these
+  pages mainly post student-staff roles; the existing title filter excludes
+  Don/front-desk noise while preserving RLC-tier titles.
 - Several `js`-mode boards rely on scanning the FULL rendered listing rather
   than a server-side keyword filter (confirmed true for U of A Oracle — its
   `?keyword=` param doesn't actually filter). This is fine because
