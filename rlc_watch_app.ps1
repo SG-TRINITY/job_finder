@@ -8,8 +8,23 @@ $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $WatcherScript = Join-Path $Root "run_watcher.cmd"
 $LogFile = Join-Path $Root "logs\rlc-watch.log"
+$AppLogFile = Join-Path $Root "logs\rlc-watch-app.log"
 $SettingsFile = Join-Path $Root "local_settings.json"
 $PythonExe = "C:\Python313\python.exe"
+
+function Write-AppLog([string]$Message) {
+    $logDir = Split-Path -Parent $AppLogFile
+    if (-not (Test-Path -LiteralPath $logDir)) {
+        New-Item -ItemType Directory -Path $logDir | Out-Null
+    }
+    $stamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    Add-Content -LiteralPath $AppLogFile -Value "[$stamp] $Message"
+}
+
+trap {
+    Write-AppLog "Unhandled error: $($_.Exception.Message)"
+    continue
+}
 
 function Get-RlcProcesses {
     Get-CimInstance Win32_Process | Where-Object {
@@ -102,6 +117,8 @@ if ($SelfTest) {
     exit 0
 }
 
+Write-AppLog "Controller starting"
+
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
@@ -176,24 +193,28 @@ $notifyIcon.Visible = $true
 $script:AllowExit = $false
 
 function Refresh-Ui {
-    $status = Get-RlcStatus
-    if ($status.Running) {
-        $statusLabel.ForeColor = [System.Drawing.Color]::ForestGreen
-        $notifyIcon.Icon = [System.Drawing.SystemIcons]::Information
-    } else {
-        $statusLabel.ForeColor = [System.Drawing.Color]::Firebrick
-        $notifyIcon.Icon = [System.Drawing.SystemIcons]::Warning
+    try {
+        $status = Get-RlcStatus
+        if ($status.Running) {
+            $statusLabel.ForeColor = [System.Drawing.Color]::ForestGreen
+            $notifyIcon.Icon = [System.Drawing.SystemIcons]::Information
+        } else {
+            $statusLabel.ForeColor = [System.Drawing.Color]::Firebrick
+            $notifyIcon.Icon = [System.Drawing.SystemIcons]::Warning
+        }
+
+        $statusLabel.Text = "Status: $($status.Text)"
+        $detailLabel.Text = "$($status.Detail) Process count: $($status.ProcessCount)."
+        $logLabel.Text = "Latest log: $(Get-LastLogLine)"
+        $notifyIcon.Text = "Ladle Me Jobs - $($status.Text)"
+
+        $startButton.Enabled = -not $status.Running
+        $startMenuItem.Enabled = -not $status.Running
+        $stopButton.Enabled = $status.Running
+        $stopMenuItem.Enabled = $status.Running
+    } catch {
+        Write-AppLog "Refresh error: $($_.Exception.Message)"
     }
-
-    $statusLabel.Text = "Status: $($status.Text)"
-    $detailLabel.Text = "$($status.Detail) Process count: $($status.ProcessCount)."
-    $logLabel.Text = "Latest log: $(Get-LastLogLine)"
-    $notifyIcon.Text = "Ladle Me Jobs - $($status.Text)"
-
-    $startButton.Enabled = -not $status.Running
-    $startMenuItem.Enabled = -not $status.Running
-    $stopButton.Enabled = $status.Running
-    $stopMenuItem.Enabled = $status.Running
 }
 
 $startAction = {
@@ -242,7 +263,11 @@ $form.Add_FormClosing({
     if (-not $script:AllowExit) {
         $eventArgs.Cancel = $true
         $form.Hide()
-        $notifyIcon.ShowBalloonTip(2000, "Ladle Me Jobs", "Still running in the tray.", [System.Windows.Forms.ToolTipIcon]::Info)
+        try {
+            $notifyIcon.ShowBalloonTip(2000, "Ladle Me Jobs", "Still running in the tray.", [System.Windows.Forms.ToolTipIcon]::Info)
+        } catch {
+            Write-AppLog "Tray balloon error: $($_.Exception.Message)"
+        }
     }
 })
 
@@ -252,4 +277,8 @@ $timer.Add_Tick({ Refresh-Ui })
 $timer.Start()
 
 Refresh-Ui
-[System.Windows.Forms.Application]::Run($form)
+try {
+    [System.Windows.Forms.Application]::Run($form)
+} finally {
+    Write-AppLog "Controller stopped"
+}
