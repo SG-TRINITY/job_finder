@@ -124,54 +124,183 @@ Add-Type -AssemblyName System.Drawing
 
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
+$Y2KColors = @{
+    DeepInk = [System.Drawing.Color]::FromArgb(18, 12, 34)
+    Night = [System.Drawing.Color]::FromArgb(31, 18, 58)
+    Glass = [System.Drawing.Color]::FromArgb(41, 22, 73)
+    ChromeLight = [System.Drawing.Color]::FromArgb(248, 247, 255)
+    ChromeMid = [System.Drawing.Color]::FromArgb(176, 199, 255)
+    ChromeDark = [System.Drawing.Color]::FromArgb(86, 66, 156)
+    Aqua = [System.Drawing.Color]::FromArgb(77, 239, 255)
+    Pink = [System.Drawing.Color]::FromArgb(255, 99, 213)
+    Lavender = [System.Drawing.Color]::FromArgb(185, 142, 255)
+    Lime = [System.Drawing.Color]::FromArgb(185, 255, 143)
+    Text = [System.Drawing.Color]::FromArgb(252, 250, 255)
+    Muted = [System.Drawing.Color]::FromArgb(215, 220, 255)
+}
+
+function Set-Y2KButton([System.Windows.Forms.Button]$Button, [System.Drawing.Color]$Accent) {
+    $Button.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+    $Button.UseVisualStyleBackColor = $false
+    $Button.BackColor = $Y2KColors.Night
+    $Button.ForeColor = $Y2KColors.Text
+    $Button.Font = New-Object System.Drawing.Font("Lucida Console", 8, [System.Drawing.FontStyle]::Bold)
+    $Button.Cursor = [System.Windows.Forms.Cursors]::Hand
+    $Button.FlatAppearance.BorderColor = $Accent
+    $Button.FlatAppearance.BorderSize = 1
+    $Button.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(72, 30, 108)
+    $Button.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(105, 45, 144)
+}
+
 $form = New-Object System.Windows.Forms.Form
 $form.Text = "Ladle Me Jobs"
-$form.Size = New-Object System.Drawing.Size(420, 260)
+$form.ClientSize = New-Object System.Drawing.Size(500, 315)
 $form.StartPosition = "CenterScreen"
 $form.MaximizeBox = $false
 $form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedSingle
+$form.BackColor = $Y2KColors.DeepInk
+$form.ForeColor = $Y2KColors.Text
+$form.Font = New-Object System.Drawing.Font("Segoe UI", 9)
+
+$form.Add_Paint({
+    param($sender, $eventArgs)
+
+    $graphics = $eventArgs.Graphics
+    $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
+    $graphics.TextRenderingHint = [System.Drawing.Text.TextRenderingHint]::ClearTypeGridFit
+
+    $rect = $sender.ClientRectangle
+    if ($rect.Width -le 0 -or $rect.Height -le 0) {
+        return
+    }
+
+    $bgBrush = New-Object System.Drawing.Drawing2D.LinearGradientBrush($rect, $Y2KColors.DeepInk, $Y2KColors.Lavender, 35.0)
+    try {
+        $graphics.FillRectangle($bgBrush, $rect)
+    } finally {
+        $bgBrush.Dispose()
+    }
+
+    $gridPen = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(48, $Y2KColors.Aqua), 1)
+    try {
+        for ($x = -$rect.Height; $x -lt ($rect.Width + $rect.Height); $x += 22) {
+            $graphics.DrawLine($gridPen, $x, $rect.Height, $x + 96, 138)
+        }
+        for ($y = 145; $y -lt $rect.Height; $y += 18) {
+            $graphics.DrawLine($gridPen, 0, $y, $rect.Width, $y)
+        }
+    } finally {
+        $gridPen.Dispose()
+    }
+
+    $headerRect = New-Object System.Drawing.Rectangle(14, 14, ($rect.Width - 28), 82)
+    $headerBrush = New-Object System.Drawing.Drawing2D.LinearGradientBrush($headerRect, $Y2KColors.ChromeLight, $Y2KColors.ChromeDark, 90.0)
+    $headerPen = New-Object System.Drawing.Pen($Y2KColors.Aqua, 2)
+    $shinePen = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(190, $Y2KColors.Pink), 1)
+    try {
+        $graphics.FillRectangle($headerBrush, $headerRect)
+        $graphics.DrawRectangle($headerPen, $headerRect)
+        $graphics.DrawLine($shinePen, 22, 28, ($rect.Width - 28), 76)
+        $graphics.DrawLine($shinePen, 110, 22, ($rect.Width - 18), 58)
+    } finally {
+        $headerBrush.Dispose()
+        $headerPen.Dispose()
+        $shinePen.Dispose()
+    }
+
+    $panelRect = New-Object System.Drawing.Rectangle(16, 112, ($rect.Width - 32), 126)
+    $panelBrush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(235, $Y2KColors.Glass))
+    $panelPen = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(150, $Y2KColors.Lavender), 1)
+    try {
+        $graphics.FillRectangle($panelBrush, $panelRect)
+        $graphics.DrawRectangle($panelPen, $panelRect)
+    } finally {
+        $panelBrush.Dispose()
+        $panelPen.Dispose()
+    }
+
+    $starPen = New-Object System.Drawing.Pen($Y2KColors.Text, 1)
+    try {
+        $graphics.DrawLine($starPen, 448, 26, 448, 42)
+        $graphics.DrawLine($starPen, 440, 34, 456, 34)
+        $graphics.DrawLine($starPen, 388, 72, 388, 84)
+        $graphics.DrawLine($starPen, 382, 78, 394, 78)
+    } finally {
+        $starPen.Dispose()
+    }
+})
+
+$eyebrowLabel = New-Object System.Windows.Forms.Label
+$eyebrowLabel.Text = "RLC WATCH // Y2K JOB RADAR"
+$eyebrowLabel.Font = New-Object System.Drawing.Font("Lucida Console", 8, [System.Drawing.FontStyle]::Bold)
+$eyebrowLabel.ForeColor = $Y2KColors.Night
+$eyebrowLabel.BackColor = [System.Drawing.Color]::Transparent
+$eyebrowLabel.AutoSize = $true
+$eyebrowLabel.Location = New-Object System.Drawing.Point(25, 24)
+$form.Controls.Add($eyebrowLabel)
 
 $titleLabel = New-Object System.Windows.Forms.Label
 $titleLabel.Text = "Ladle Me Jobs"
-$titleLabel.Font = New-Object System.Drawing.Font("Segoe UI", 18, [System.Drawing.FontStyle]::Bold)
+$titleLabel.Font = New-Object System.Drawing.Font("Trebuchet MS", 24, [System.Drawing.FontStyle]::Bold)
+$titleLabel.ForeColor = $Y2KColors.Text
+$titleLabel.BackColor = [System.Drawing.Color]::Transparent
 $titleLabel.AutoSize = $true
-$titleLabel.Location = New-Object System.Drawing.Point(20, 18)
+$titleLabel.Location = New-Object System.Drawing.Point(23, 39)
 $form.Controls.Add($titleLabel)
 
+$subtitleLabel = New-Object System.Windows.Forms.Label
+$subtitleLabel.Text = "chrome alerts for residence life postings"
+$subtitleLabel.Font = New-Object System.Drawing.Font("Lucida Console", 8, [System.Drawing.FontStyle]::Regular)
+$subtitleLabel.ForeColor = $Y2KColors.DeepInk
+$subtitleLabel.BackColor = [System.Drawing.Color]::Transparent
+$subtitleLabel.AutoSize = $true
+$subtitleLabel.Location = New-Object System.Drawing.Point(28, 78)
+$form.Controls.Add($subtitleLabel)
+
 $statusLabel = New-Object System.Windows.Forms.Label
-$statusLabel.Font = New-Object System.Drawing.Font("Segoe UI", 13, [System.Drawing.FontStyle]::Bold)
-$statusLabel.AutoSize = $true
-$statusLabel.Location = New-Object System.Drawing.Point(22, 66)
+$statusLabel.Font = New-Object System.Drawing.Font("Lucida Console", 10, [System.Drawing.FontStyle]::Bold)
+$statusLabel.AutoSize = $false
+$statusLabel.Size = New-Object System.Drawing.Size(175, 32)
+$statusLabel.Location = New-Object System.Drawing.Point(26, 122)
+$statusLabel.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$statusLabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
 $form.Controls.Add($statusLabel)
 
 $detailLabel = New-Object System.Windows.Forms.Label
-$detailLabel.Font = New-Object System.Drawing.Font("Segoe UI", 9)
-$detailLabel.Size = New-Object System.Drawing.Size(360, 42)
-$detailLabel.Location = New-Object System.Drawing.Point(24, 96)
+$detailLabel.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+$detailLabel.ForeColor = $Y2KColors.Muted
+$detailLabel.BackColor = [System.Drawing.Color]::Transparent
+$detailLabel.Size = New-Object System.Drawing.Size(255, 42)
+$detailLabel.Location = New-Object System.Drawing.Point(218, 119)
 $form.Controls.Add($detailLabel)
 
 $logLabel = New-Object System.Windows.Forms.Label
-$logLabel.Font = New-Object System.Drawing.Font("Segoe UI", 8)
-$logLabel.Size = New-Object System.Drawing.Size(360, 35)
-$logLabel.Location = New-Object System.Drawing.Point(24, 138)
+$logLabel.Font = New-Object System.Drawing.Font("Lucida Console", 8)
+$logLabel.ForeColor = $Y2KColors.Pink
+$logLabel.BackColor = [System.Drawing.Color]::Transparent
+$logLabel.Size = New-Object System.Drawing.Size(448, 55)
+$logLabel.Location = New-Object System.Drawing.Point(26, 171)
 $form.Controls.Add($logLabel)
 
 $startButton = New-Object System.Windows.Forms.Button
-$startButton.Text = "Start Watcher"
-$startButton.Size = New-Object System.Drawing.Size(115, 32)
-$startButton.Location = New-Object System.Drawing.Point(24, 180)
+$startButton.Text = "START"
+$startButton.Size = New-Object System.Drawing.Size(132, 36)
+$startButton.Location = New-Object System.Drawing.Point(26, 260)
+Set-Y2KButton $startButton $Y2KColors.Lime
 $form.Controls.Add($startButton)
 
 $stopButton = New-Object System.Windows.Forms.Button
-$stopButton.Text = "Stop Watcher"
-$stopButton.Size = New-Object System.Drawing.Size(115, 32)
-$stopButton.Location = New-Object System.Drawing.Point(148, 180)
+$stopButton.Text = "STOP"
+$stopButton.Size = New-Object System.Drawing.Size(132, 36)
+$stopButton.Location = New-Object System.Drawing.Point(184, 260)
+Set-Y2KButton $stopButton $Y2KColors.Pink
 $form.Controls.Add($stopButton)
 
 $logButton = New-Object System.Windows.Forms.Button
-$logButton.Text = "Open Log"
-$logButton.Size = New-Object System.Drawing.Size(95, 32)
-$logButton.Location = New-Object System.Drawing.Point(272, 180)
+$logButton.Text = "OPEN LOG"
+$logButton.Size = New-Object System.Drawing.Size(132, 36)
+$logButton.Location = New-Object System.Drawing.Point(342, 260)
+Set-Y2KButton $logButton $Y2KColors.Aqua
 $form.Controls.Add($logButton)
 
 $trayMenu = New-Object System.Windows.Forms.ContextMenuStrip
@@ -196,16 +325,19 @@ function Refresh-Ui {
     try {
         $status = Get-RlcStatus
         if ($status.Running) {
-            $statusLabel.ForeColor = [System.Drawing.Color]::ForestGreen
+            $statusLabel.Text = "ONLINE // $($status.Text)"
+            $statusLabel.ForeColor = $Y2KColors.Lime
+            $statusLabel.BackColor = [System.Drawing.Color]::FromArgb(28, 48, 47)
             $notifyIcon.Icon = [System.Drawing.SystemIcons]::Information
         } else {
-            $statusLabel.ForeColor = [System.Drawing.Color]::Firebrick
+            $statusLabel.Text = "OFFLINE // $($status.Text)"
+            $statusLabel.ForeColor = $Y2KColors.Pink
+            $statusLabel.BackColor = [System.Drawing.Color]::FromArgb(55, 24, 64)
             $notifyIcon.Icon = [System.Drawing.SystemIcons]::Warning
         }
 
-        $statusLabel.Text = "Status: $($status.Text)"
         $detailLabel.Text = "$($status.Detail) Process count: $($status.ProcessCount)."
-        $logLabel.Text = "Latest log: $(Get-LastLogLine)"
+        $logLabel.Text = "LOG FEED // $(Get-LastLogLine)"
         $notifyIcon.Text = "Ladle Me Jobs - $($status.Text)"
 
         $startButton.Enabled = -not $status.Running
