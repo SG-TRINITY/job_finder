@@ -32,8 +32,10 @@ detection (she checks details herself).
   Aggregator boards (Indeed/LinkedIn/Glassdoor) will surface non-university noise
   (group homes, youth services, hospitality) — same filter applies, she reviews
   details herself.
-- State: `state/seen.json`, fingerprint = sha256(board + normalized title).
-  New fingerprint => alert.
+- State: `state/seen.json`, fingerprint = sha256(board + normalized title +
+  canonical posting link). New fingerprint => alert. Link-aware fingerprints are
+  required because CLC can post multiple distinct jobs with the same title, such
+  as two separate "Residence Life Coordinator" postings.
 - Alerts: Gmail SMTP (SSL 465) for email, plus optional SMS via email-to-SMS
   carrier gateway (e.g. `5551234567@txt.bell.ca`). SMS body is a short summary
   only; full details/links go out by email. Both are best-effort — if

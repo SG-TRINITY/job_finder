@@ -28,7 +28,7 @@ import time
 from datetime import datetime, timezone
 from email.mime.text import MIMEText
 from pathlib import Path
-from urllib.parse import urljoin, urlparse
+from urllib.parse import parse_qsl, urlencode, urljoin, urlparse, urlunparse
 
 import requests
 from bs4 import BeautifulSoup
@@ -275,7 +275,50 @@ def scan_board(board: dict) -> list[dict]:
     return list(unique.values())
 
 
+def canonical_link(link: str) -> str:
+    """Keep stable job identity while dropping volatile tracking noise."""
+    if not link:
+        return ""
+
+    parsed = urlparse(link)
+    host = parsed.netloc.lower()
+    path = parsed.path
+    query = dict(parse_qsl(parsed.query, keep_blank_values=True))
+
+    keep_params = None
+    if "campusliv.hrmdirect.com" in host:
+        keep_params = {"req", "req_loc"}
+    elif "linkedin." in host:
+        keep_params = set()
+    elif "glassdoor." in host:
+        keep_params = {"jl"}
+    elif "indeed." in host:
+        keep_params = {"jk", "vjk"}
+
+    if keep_params is None:
+        noisy_prefixes = ("utm_",)
+        noisy_names = {
+            "trk", "trackingid", "refid", "position", "pagenum", "xkcb",
+            "p", "camk", "vjs", "from", "source",
+        }
+        kept = {
+            k: v for k, v in query.items()
+            if k.lower() not in noisy_names and not k.lower().startswith(noisy_prefixes)
+        }
+    else:
+        kept = {k: v for k, v in query.items() if k in keep_params}
+
+    clean_query = urlencode(sorted(kept.items()))
+    return urlunparse((parsed.scheme.lower(), host, path, "", clean_query, ""))
+
+
 def fingerprint(m: dict) -> str:
+    norm_title = " ".join(m["title"].lower().split())
+    norm_link = canonical_link(m.get("link", ""))
+    return hashlib.sha256(f'{m["board"]}|{norm_title}|{norm_link}'.encode()).hexdigest()[:16]
+
+
+def legacy_fingerprint(m: dict) -> str:
     norm_title = " ".join(m["title"].lower().split())
     return hashlib.sha256(f'{m["board"]}|{norm_title}'.encode()).hexdigest()[:16]
 
@@ -284,8 +327,20 @@ def fingerprint(m: dict) -> str:
 
 def load_state() -> dict:
     if STATE_FILE.exists():
-        return json.loads(STATE_FILE.read_text())
+        state = json.loads(STATE_FILE.read_text())
+        migrate_state(state)
+        return state
     return {"seen": {}}
+
+
+def migrate_state(state: dict) -> None:
+    """Backfill link-aware fingerprints for entries saved by older versions."""
+    seen = state.setdefault("seen", {})
+    for item in list(seen.values()):
+        if not all(k in item for k in ("board", "title", "link")):
+            continue
+        fp = fingerprint(item)
+        seen.setdefault(fp, item)
 
 
 def save_state(state: dict) -> None:
