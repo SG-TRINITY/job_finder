@@ -39,18 +39,24 @@ function Get-RlcStatus {
     $processes = @(Get-RlcProcesses)
     $watchdog = $processes | Where-Object { $_.CommandLine -like "*run_watcher.cmd*" }
     $scraper = $processes | Where-Object { $_.CommandLine -like "*scraper.py*--loop*" }
+    $watchdogRunning = [bool]$watchdog
+    $scraperRunning = [bool]$scraper
 
-    if ($watchdog -and $scraper) {
+    if ($watchdogRunning -and $scraperRunning) {
         return @{
             Running = $true
+            WatchdogRunning = $true
+            ScraperRunning = $true
             Text = "Running"
             Detail = "Watchdog and scraper are active."
             ProcessCount = $processes.Count
         }
     }
-    if ($scraper) {
+    if ($scraperRunning) {
         return @{
             Running = $true
+            WatchdogRunning = $false
+            ScraperRunning = $true
             Text = "Running without watchdog"
             Detail = "Scraper is active, but the watchdog is not."
             ProcessCount = $processes.Count
@@ -58,9 +64,11 @@ function Get-RlcStatus {
     }
     return @{
         Running = $false
+        WatchdogRunning = $watchdogRunning
+        ScraperRunning = $false
         Text = "Stopped"
         Detail = "No watcher process is running."
-        ProcessCount = 0
+        ProcessCount = $processes.Count
     }
 }
 
@@ -152,9 +160,20 @@ function Set-Y2KButton([System.Windows.Forms.Button]$Button, [System.Drawing.Col
     $Button.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(105, 45, 144)
 }
 
+function Set-Y2KStateChip(
+    [System.Windows.Forms.Label]$Label,
+    [string]$Text,
+    [System.Drawing.Color]$ForeColor,
+    [System.Drawing.Color]$BackColor
+) {
+    $Label.Text = $Text
+    $Label.ForeColor = $ForeColor
+    $Label.BackColor = $BackColor
+}
+
 $form = New-Object System.Windows.Forms.Form
 $form.Text = "Ladle Me Jobs"
-$form.ClientSize = New-Object System.Drawing.Size(500, 315)
+$form.ClientSize = New-Object System.Drawing.Size(540, 386)
 $form.StartPosition = "CenterScreen"
 $form.MaximizeBox = $false
 $form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedSingle
@@ -193,22 +212,22 @@ $form.Add_Paint({
         $gridPen.Dispose()
     }
 
-    $headerRect = New-Object System.Drawing.Rectangle(14, 14, ($rect.Width - 28), 82)
+    $headerRect = New-Object System.Drawing.Rectangle(18, 16, ($rect.Width - 36), 102)
     $headerBrush = New-Object System.Drawing.Drawing2D.LinearGradientBrush($headerRect, $Y2KColors.ChromeLight, $Y2KColors.ChromeDark, 90.0)
     $headerPen = New-Object System.Drawing.Pen($Y2KColors.Aqua, 2)
     $shinePen = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(190, $Y2KColors.Pink), 1)
     try {
         $graphics.FillRectangle($headerBrush, $headerRect)
         $graphics.DrawRectangle($headerPen, $headerRect)
-        $graphics.DrawLine($shinePen, 22, 28, ($rect.Width - 28), 76)
-        $graphics.DrawLine($shinePen, 110, 22, ($rect.Width - 18), 58)
+        $graphics.DrawLine($shinePen, 26, 34, ($rect.Width - 28), 88)
+        $graphics.DrawLine($shinePen, 116, 28, ($rect.Width - 24), 68)
     } finally {
         $headerBrush.Dispose()
         $headerPen.Dispose()
         $shinePen.Dispose()
     }
 
-    $panelRect = New-Object System.Drawing.Rectangle(16, 112, ($rect.Width - 32), 126)
+    $panelRect = New-Object System.Drawing.Rectangle(22, 138, ($rect.Width - 44), 158)
     $panelBrush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(235, $Y2KColors.Glass))
     $panelPen = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(150, $Y2KColors.Lavender), 1)
     try {
@@ -221,10 +240,10 @@ $form.Add_Paint({
 
     $starPen = New-Object System.Drawing.Pen($Y2KColors.Text, 1)
     try {
-        $graphics.DrawLine($starPen, 448, 26, 448, 42)
-        $graphics.DrawLine($starPen, 440, 34, 456, 34)
-        $graphics.DrawLine($starPen, 388, 72, 388, 84)
-        $graphics.DrawLine($starPen, 382, 78, 394, 78)
+        $graphics.DrawLine($starPen, ($rect.Width - 62), 38, ($rect.Width - 62), 58)
+        $graphics.DrawLine($starPen, ($rect.Width - 72), 48, ($rect.Width - 52), 48)
+        $graphics.DrawLine($starPen, ($rect.Width - 118), 86, ($rect.Width - 118), 100)
+        $graphics.DrawLine($starPen, ($rect.Width - 125), 93, ($rect.Width - 111), 93)
     } finally {
         $starPen.Dispose()
     }
@@ -236,32 +255,32 @@ $eyebrowLabel.Font = New-Object System.Drawing.Font("Lucida Console", 8, [System
 $eyebrowLabel.ForeColor = $Y2KColors.Night
 $eyebrowLabel.BackColor = [System.Drawing.Color]::Transparent
 $eyebrowLabel.AutoSize = $true
-$eyebrowLabel.Location = New-Object System.Drawing.Point(25, 24)
+$eyebrowLabel.Location = New-Object System.Drawing.Point(31, 27)
 $form.Controls.Add($eyebrowLabel)
 
 $titleLabel = New-Object System.Windows.Forms.Label
 $titleLabel.Text = "Ladle Me Jobs"
-$titleLabel.Font = New-Object System.Drawing.Font("Trebuchet MS", 24, [System.Drawing.FontStyle]::Bold)
+$titleLabel.Font = New-Object System.Drawing.Font("Trebuchet MS", 22, [System.Drawing.FontStyle]::Bold)
 $titleLabel.ForeColor = $Y2KColors.Text
 $titleLabel.BackColor = [System.Drawing.Color]::Transparent
 $titleLabel.AutoSize = $true
-$titleLabel.Location = New-Object System.Drawing.Point(23, 39)
+$titleLabel.Location = New-Object System.Drawing.Point(31, 50)
 $form.Controls.Add($titleLabel)
 
 $subtitleLabel = New-Object System.Windows.Forms.Label
 $subtitleLabel.Text = "chrome alerts for residence life postings"
 $subtitleLabel.Font = New-Object System.Drawing.Font("Lucida Console", 8, [System.Drawing.FontStyle]::Regular)
-$subtitleLabel.ForeColor = $Y2KColors.DeepInk
+$subtitleLabel.ForeColor = $Y2KColors.Text
 $subtitleLabel.BackColor = [System.Drawing.Color]::Transparent
 $subtitleLabel.AutoSize = $true
-$subtitleLabel.Location = New-Object System.Drawing.Point(28, 78)
+$subtitleLabel.Location = New-Object System.Drawing.Point(34, 93)
 $form.Controls.Add($subtitleLabel)
 
 $statusLabel = New-Object System.Windows.Forms.Label
-$statusLabel.Font = New-Object System.Drawing.Font("Lucida Console", 10, [System.Drawing.FontStyle]::Bold)
+$statusLabel.Font = New-Object System.Drawing.Font("Lucida Console", 11, [System.Drawing.FontStyle]::Bold)
 $statusLabel.AutoSize = $false
-$statusLabel.Size = New-Object System.Drawing.Size(175, 32)
-$statusLabel.Location = New-Object System.Drawing.Point(26, 122)
+$statusLabel.Size = New-Object System.Drawing.Size(190, 42)
+$statusLabel.Location = New-Object System.Drawing.Point(34, 156)
 $statusLabel.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
 $statusLabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
 $form.Controls.Add($statusLabel)
@@ -270,36 +289,54 @@ $detailLabel = New-Object System.Windows.Forms.Label
 $detailLabel.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
 $detailLabel.ForeColor = $Y2KColors.Muted
 $detailLabel.BackColor = [System.Drawing.Color]::Transparent
-$detailLabel.Size = New-Object System.Drawing.Size(255, 42)
-$detailLabel.Location = New-Object System.Drawing.Point(218, 119)
+$detailLabel.Size = New-Object System.Drawing.Size(276, 62)
+$detailLabel.Location = New-Object System.Drawing.Point(244, 153)
 $form.Controls.Add($detailLabel)
+
+$scraperStateLabel = New-Object System.Windows.Forms.Label
+$scraperStateLabel.Font = New-Object System.Drawing.Font("Lucida Console", 8, [System.Drawing.FontStyle]::Bold)
+$scraperStateLabel.AutoSize = $false
+$scraperStateLabel.Size = New-Object System.Drawing.Size(190, 28)
+$scraperStateLabel.Location = New-Object System.Drawing.Point(34, 210)
+$scraperStateLabel.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$scraperStateLabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
+$form.Controls.Add($scraperStateLabel)
+
+$watchdogStateLabel = New-Object System.Windows.Forms.Label
+$watchdogStateLabel.Font = New-Object System.Drawing.Font("Lucida Console", 8, [System.Drawing.FontStyle]::Bold)
+$watchdogStateLabel.AutoSize = $false
+$watchdogStateLabel.Size = New-Object System.Drawing.Size(190, 28)
+$watchdogStateLabel.Location = New-Object System.Drawing.Point(244, 210)
+$watchdogStateLabel.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$watchdogStateLabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
+$form.Controls.Add($watchdogStateLabel)
 
 $logLabel = New-Object System.Windows.Forms.Label
 $logLabel.Font = New-Object System.Drawing.Font("Lucida Console", 8)
 $logLabel.ForeColor = $Y2KColors.Pink
 $logLabel.BackColor = [System.Drawing.Color]::Transparent
-$logLabel.Size = New-Object System.Drawing.Size(448, 55)
-$logLabel.Location = New-Object System.Drawing.Point(26, 171)
+$logLabel.Size = New-Object System.Drawing.Size(482, 38)
+$logLabel.Location = New-Object System.Drawing.Point(34, 252)
 $form.Controls.Add($logLabel)
 
 $startButton = New-Object System.Windows.Forms.Button
 $startButton.Text = "START"
-$startButton.Size = New-Object System.Drawing.Size(132, 36)
-$startButton.Location = New-Object System.Drawing.Point(26, 260)
+$startButton.Size = New-Object System.Drawing.Size(138, 38)
+$startButton.Location = New-Object System.Drawing.Point(34, 329)
 Set-Y2KButton $startButton $Y2KColors.Lime
 $form.Controls.Add($startButton)
 
 $stopButton = New-Object System.Windows.Forms.Button
 $stopButton.Text = "STOP"
-$stopButton.Size = New-Object System.Drawing.Size(132, 36)
-$stopButton.Location = New-Object System.Drawing.Point(184, 260)
+$stopButton.Size = New-Object System.Drawing.Size(138, 38)
+$stopButton.Location = New-Object System.Drawing.Point(201, 329)
 Set-Y2KButton $stopButton $Y2KColors.Pink
 $form.Controls.Add($stopButton)
 
 $logButton = New-Object System.Windows.Forms.Button
 $logButton.Text = "OPEN LOG"
-$logButton.Size = New-Object System.Drawing.Size(132, 36)
-$logButton.Location = New-Object System.Drawing.Point(342, 260)
+$logButton.Size = New-Object System.Drawing.Size(138, 38)
+$logButton.Location = New-Object System.Drawing.Point(368, 329)
 Set-Y2KButton $logButton $Y2KColors.Aqua
 $form.Controls.Add($logButton)
 
@@ -324,25 +361,52 @@ $script:AllowExit = $false
 function Refresh-Ui {
     try {
         $status = Get-RlcStatus
-        if ($status.Running) {
-            $statusLabel.Text = "ONLINE // $($status.Text)"
-            $statusLabel.ForeColor = $Y2KColors.Lime
-            $statusLabel.BackColor = [System.Drawing.Color]::FromArgb(28, 48, 47)
+        $onlineBack = [System.Drawing.Color]::FromArgb(28, 48, 47)
+        $offlineBack = [System.Drawing.Color]::FromArgb(55, 24, 64)
+        $warningBack = [System.Drawing.Color]::FromArgb(68, 49, 22)
+
+        if ($status.ScraperRunning) {
+            $statusLabel.Text = "SCRAPER ACTIVE"
+            $statusLabel.ForeColor = $Y2KColors.DeepInk
+            $statusLabel.BackColor = $Y2KColors.Lime
             $notifyIcon.Icon = [System.Drawing.SystemIcons]::Information
         } else {
-            $statusLabel.Text = "OFFLINE // $($status.Text)"
-            $statusLabel.ForeColor = $Y2KColors.Pink
-            $statusLabel.BackColor = [System.Drawing.Color]::FromArgb(55, 24, 64)
+            $statusLabel.Text = "NOT SCANNING"
+            $statusLabel.ForeColor = $Y2KColors.DeepInk
+            $statusLabel.BackColor = $Y2KColors.Pink
             $notifyIcon.Icon = [System.Drawing.SystemIcons]::Warning
         }
 
-        $detailLabel.Text = "$($status.Detail) Process count: $($status.ProcessCount)."
+        if ($status.ScraperRunning -and $status.WatchdogRunning) {
+            $detailLabel.Text = "Full scan loop is live. Watchdog will relaunch the scraper if needed. Processes: $($status.ProcessCount)."
+        } elseif ($status.ScraperRunning) {
+            $detailLabel.Text = "Scraper is checking jobs now, but watchdog is not guarding restarts. Processes: $($status.ProcessCount)."
+        } elseif ($status.WatchdogRunning) {
+            $detailLabel.Text = "Watchdog is present, but no scraper loop was detected. Processes: $($status.ProcessCount)."
+        } else {
+            $detailLabel.Text = "No scraper or watchdog process is running. Press START to resume alerts."
+        }
+
+        if ($status.ScraperRunning) {
+            Set-Y2KStateChip $scraperStateLabel "SCRAPER // RUNNING" $Y2KColors.Lime $onlineBack
+        } else {
+            Set-Y2KStateChip $scraperStateLabel "SCRAPER // OFF" $Y2KColors.Pink $offlineBack
+        }
+
+        if ($status.WatchdogRunning) {
+            Set-Y2KStateChip $watchdogStateLabel "WATCHDOG // ON" $Y2KColors.Aqua $onlineBack
+        } elseif ($status.ScraperRunning) {
+            Set-Y2KStateChip $watchdogStateLabel "WATCHDOG // OFF" $Y2KColors.Pink $warningBack
+        } else {
+            Set-Y2KStateChip $watchdogStateLabel "WATCHDOG // OFF" $Y2KColors.Pink $offlineBack
+        }
+
         $logLabel.Text = "LOG FEED // $(Get-LastLogLine)"
         $notifyIcon.Text = "Ladle Me Jobs - $($status.Text)"
 
-        $startButton.Enabled = -not $status.Running
+        $startButton.Enabled = $true
         $startMenuItem.Enabled = -not $status.Running
-        $stopButton.Enabled = $status.Running
+        $stopButton.Enabled = $true
         $stopMenuItem.Enabled = $status.Running
     } catch {
         Write-AppLog "Refresh error: $($_.Exception.Message)"
