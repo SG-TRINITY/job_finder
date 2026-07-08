@@ -255,6 +255,12 @@ $logButton.Add_Click({ Open-PathIfExists $LogFile })
 $openLogMenuItem.Add_Click({ Open-PathIfExists $LogFile })
 $openSettingsMenuItem.Add_Click({ Open-PathIfExists $SettingsFile })
 $showMenuItem.Add_Click($showAction)
+$notifyIcon.Add_Click({
+    param($sender, $eventArgs)
+    if ($eventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
+        & $showAction
+    }
+})
 $notifyIcon.Add_DoubleClick($showAction)
 $exitMenuItem.Add_Click($exitAction)
 
