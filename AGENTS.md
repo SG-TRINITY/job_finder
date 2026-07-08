@@ -64,6 +64,10 @@ detection (she checks details herself).
     every N minutes, alerting immediately when it finds something new. This is
     the "constantly pings me" mode — leave a terminal open, or launch it at
     login.
+- Local controller app: `rlc_watch_app.ps1` launches a small Windows tray UI
+  named Ladle Me Jobs. It shows whether the watchdog/scraper is running, has
+  Start/Stop/Open Log controls, and closes to the tray. `launch_ladle_me_jobs.cmd`
+  starts it like a normal app.
 - `--dry-run` prints matches, no email/SMS/state write. Use it after any
   boards.json edit, and combine with `--loop`-less single runs when testing.
 
