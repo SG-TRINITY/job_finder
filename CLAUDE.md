@@ -64,10 +64,39 @@ detection (she checks details herself).
     every N minutes, alerting immediately when it finds something new. This is
     the "constantly pings me" mode — leave a terminal open, or launch it at
     login.
-- Local controller app: `rlc_watch_app.ps1` launches a small Windows tray UI
-  named Ladle Me Jobs. It shows whether the watchdog/scraper is running, has
-  Start/Stop/Open Log controls, and closes to the tray. `launch_ladle_me_jobs.cmd`
-  starts it like a normal app.
+- Local controller UI: `ui/index.html` + `ui/server.py` + `ui/desktop_app.py`
+  (2026-07-08, replaced the earlier WinForms/GDI+ tray app). `server.py` is a
+  stdlib-only Python `http.server` bound to `127.0.0.1:8787` that serves the
+  HTML/CSS/JS control panel ("Ladle Me Jobs", Y2K/chrome design) and a small
+  JSON API (`/api/status`, `/api/log`, `/api/start`, `/api/stop`, `/log`).
+  `desktop_app.py` runs that same server on a background thread and shows it
+  in a native window via `pywebview` (WebView2/Edge engine, already present
+  on Windows 11) instead of a browser tab — this is what
+  `launch_ladle_me_jobs.cmd`/`.vbs` actually launch. `server.py` can still be
+  run standalone (`python ui/server.py`) to open the UI as a plain browser
+  tab instead, which is handy for editing/previewing the HTML without
+  restarting the desktop window. Process detection/start/stop shells out to
+  `rlc_watch_control.ps1` (Win32_Process matching, same logic Windows needs
+  regardless of host language) rather than reimplementing it in Python.
+  Closing the desktop window minimizes it to the system tray (`pystray`)
+  instead of quitting — matches the old tray-app UX. Use Exit from the tray
+  menu to actually quit the controller; the scraper/watchdog loop keeps
+  running independently either way — STOP in the UI is what actually stops
+  it. `desktop_app.py` also guards against double-launching: on startup it
+  checks whether port 8787 is already bound, and if so just asks the
+  running instance to show/focus its window (`GET /api/show`, wired via
+  `server.show_callback`) and exits, rather than spawning a second window.
+  Launchers use `pythonw.exe` (not `python.exe`) specifically so no console
+  window ever flashes.
+  `rlc_watch_app.ps1` (the old WinForms tray app) is left in the repo but is
+  no longer launched by default — kept working in case of a revert, not the
+  primary UI. Reason for the switch: hand-drawing UI in GDI+/PowerShell was
+  slow to iterate on and couldn't match the intended visual design as well as
+  a real browser engine renders plain HTML/CSS/JS. New dependencies:
+  `pywebview` and `pystray` (added to requirements.txt) — the one exception
+  to the "no new dependencies" preference, justified by this being the whole
+  point of the request (a real desktop window + tray icon around real web
+  UI code).
 - `--dry-run` prints matches, no email/SMS/state write. Use it after any
   boards.json edit, and combine with `--loop`-less single runs when testing.
 

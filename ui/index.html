@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RLC WATCH // Ladle Me Jobs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Chakra+Petch:wght@400;600;700&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void: #0e0526;
+    --teal: #2de2c9;
+    --eblue: #3d7bff;
+    --violet: #8a4bff;
+    --magenta: #ff40d9;
+    --pink: #ff9de4;
+    --acid: #9dff3f;
+    --chrome-hi: #f7f6fd;
+    --chrome-mid: #bab4da;
+    --chrome-lo: #6e67a0;
+    --crt: #0b041f;
+    --ink: #190f3e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    font-family: 'Chakra Petch', sans-serif;
+    color: #fff;
+    background: var(--void);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 44px 20px;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* ===== multichrome "oil spill" background (teal→blue→violet→magenta) ===== */
+  .chrome-sky {
+    position: fixed; inset: -20%;
+    z-index: 0;
+    background:
+      radial-gradient(38% 42% at 18% 22%, rgba(45,226,201,.35), transparent 70%),
+      radial-gradient(42% 46% at 82% 18%, rgba(61,123,255,.38), transparent 70%),
+      radial-gradient(50% 50% at 72% 82%, rgba(138,75,255,.42), transparent 70%),
+      radial-gradient(40% 44% at 22% 84%, rgba(255,64,217,.35), transparent 70%);
+    filter: blur(10px) saturate(1.2);
+    animation: drift 24s ease-in-out infinite alternate;
+  }
+  @keyframes drift {
+    to { transform: rotate(3deg) scale(1.08) translateY(-2%); }
+  }
+
+  .grid-floor {
+    position: fixed;
+    left: -50%; right: -50%; bottom: 0;
+    height: 44vh;
+    z-index: 0;
+    background:
+      repeating-linear-gradient(90deg, rgba(69,240,255,.14) 0 1px, transparent 1px 90px),
+      repeating-linear-gradient(0deg, rgba(255,64,217,.12) 0 1px, transparent 1px 46px);
+    transform: perspective(420px) rotateX(58deg);
+    transform-origin: top;
+    pointer-events: none;
+    mask-image: linear-gradient(180deg, transparent, black 30%);
+  }
+
+  /* ===== sticker icons (teen-zine pack: white die-cut stroke) ===== */
+  .sticker {
+    position: absolute;
+    z-index: 3;
+    filter: drop-shadow(0 4px 8px rgba(5,0,25,.5));
+    animation: bob 5s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .sticker.smiley { top: -26px; right: -20px; transform: rotate(12deg); }
+  .sticker.star   { bottom: 84px; left: -24px; transform: rotate(-14deg); animation-delay: 1.4s; }
+  @keyframes bob { 50% { translate: 0 -7px; } }
+
+  /* ===== the device ===== */
+  .device {
+    width: min(760px, 100%);
+    position: relative;
+    z-index: 2;
+    border-radius: 24px;
+    padding: 7px;
+    background: linear-gradient(160deg, var(--chrome-hi) 0%, var(--chrome-mid) 38%, var(--chrome-lo) 62%, var(--chrome-hi) 100%);
+    box-shadow:
+      0 30px 60px rgba(5,0,25,.7),
+      0 0 0 1px rgba(255,255,255,.4) inset,
+      0 0 46px rgba(138,75,255,.25);
+  }
+  .device-inner {
+    border-radius: 18px;
+    background: linear-gradient(180deg, #221145 0%, #160a34 100%);
+    overflow: hidden;
+    border: 1px solid rgba(0,0,10,.5);
+    position: relative;
+  }
+  /* pearlescent overlay across whole device */
+  .device-inner::before {
+    content: '';
+    position: absolute; inset: 0;
+    z-index: 0;
+    background: linear-gradient(115deg,
+      rgba(45,226,201,.06) 0%,
+      rgba(61,123,255,.05) 30%,
+      rgba(138,75,255,.06) 55%,
+      rgba(255,64,217,.05) 80%);
+    pointer-events: none;
+  }
+  .device-inner > * { position: relative; z-index: 1; }
+
+  /* ===== titlebar (analogue-OS window chrome) ===== */
+  .titlebar {
+    position: relative;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(180deg, #fdfdff 0%, #d0caea 45%, #a59cce 50%, #dad5ef 100%);
+    border-bottom: 1px solid rgba(0,0,20,.35);
+    overflow: hidden;
+  }
+  .titlebar::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 130px;
+    background: linear-gradient(105deg, transparent, rgba(45,226,201,.5), rgba(255,64,217,.4), transparent);
+    animation: sheen 7s ease-in-out infinite;
+  }
+  @keyframes sheen { 0% { left: -150px; } 55%, 100% { left: 110%; } }
+
+  .app-id {
+    font-family: 'Silkscreen', monospace;
+    font-size: 11px;
+    letter-spacing: .08em;
+    color: var(--ink);
+  }
+  .app-id em { font-style: normal; color: #8a35c9; }
+
+  .win-buttons { margin-left: auto; display: flex; gap: 6px; }
+  .win-buttons span {
+    width: 15px; height: 15px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,30,.4);
+    background: radial-gradient(circle at 32% 28%, #fff 0%, var(--c) 45%, color-mix(in srgb, var(--c) 55%, black) 100%);
+    box-shadow: 0 1px 2px rgba(0,0,30,.35);
+  }
+  .win-buttons span:nth-child(1){ --c: var(--acid); }
+  .win-buttons span:nth-child(2){ --c: #ffd23f; }
+  .win-buttons span:nth-child(3){ --c: var(--magenta); }
+
+  /* ===== hero: pixel bitmap wordmark + glitch ===== */
+  .hero {
+    padding: 32px 28px 26px;
+    position: relative;
+  }
+  .wordmark {
+    font-family: 'Silkscreen', monospace;
+    font-weight: 700;
+    font-size: clamp(24px, 4.6vw, 40px);
+    line-height: 1.15;
+    position: relative;
+    display: inline-block;
+    background: linear-gradient(180deg, #ffffff 20%, #bfe9ff 46%, #8f7fe0 52%, #ffd7f4 82%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 3px 0 rgba(15,4,45,.95));
+  }
+  /* brief, targeted RGB-split glitch (fires occasionally, not constant) */
+  .wordmark::before, .wordmark::after {
+    content: attr(data-text);
+    position: absolute;
+    left: 0; top: 0;
+    width: 100%;
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .wordmark::before { color: var(--teal); }
+  .wordmark::after  { color: var(--magenta); }
+  .wordmark.glitching::before { animation: split-a .32s steps(2) 1; }
+  .wordmark.glitching::after  { animation: split-b .32s steps(2) 1; }
+  @keyframes split-a { 20% { opacity: .8; transform: translate(-3px, 1px);} 60% { opacity: .8; transform: translate(2px, -1px);} 100% { opacity: 0; } }
+  @keyframes split-b { 20% { opacity: .8; transform: translate(3px, -1px);} 60% { opacity: .8; transform: translate(-2px, 2px);} 100% { opacity: 0; } }
+
+  .tagline {
+    margin-top: 12px;
+    font-size: 13px;
+    letter-spacing: .28em;
+    color: var(--teal);
+    text-shadow: 0 0 10px rgba(45,226,201,.6);
+  }
+  .tagline::before { content: '▸ '; color: var(--magenta); }
+
+  /* ===== status console ===== */
+  .console {
+    margin: 0 20px 20px;
+    border-radius: 14px;
+    padding: 4px;
+    background: linear-gradient(160deg, var(--chrome-mid), var(--chrome-lo) 55%, var(--chrome-hi));
+  }
+  .console-inner {
+    border-radius: 11px;
+    background: var(--crt);
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .console-inner::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px);
+    pointer-events: none;
+  }
+
+  .status-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+  .lamp {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    border: 1px solid rgba(157,255,63,.5);
+    background: linear-gradient(180deg, rgba(157,255,63,.14), rgba(157,255,63,.03));
+    box-shadow: 0 0 18px rgba(157,255,63,.18) inset;
+  }
+  .lamp .led {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 32% 28%, #fff, var(--acid) 55%, #3a7a00);
+    box-shadow: 0 0 12px var(--acid), 0 0 26px rgba(157,255,63,.5);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse { 50% { opacity: .55; box-shadow: 0 0 4px var(--acid);} }
+  .lamp .label {
+    font-family: 'VT323', monospace;
+    font-size: 24px;
+    color: var(--acid);
+    text-shadow: 0 0 8px rgba(157,255,63,.7);
+    letter-spacing: .05em;
+  }
+
+  .status-meta { font-size: 13px; color: #cfc6f2; line-height: 1.6; flex: 1; min-width: 200px; }
+  .status-meta b { color: #fff; }
+  .proc-count {
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    color: var(--teal);
+    text-shadow: 0 0 8px rgba(45,226,201,.7);
+    padding: 2px 10px;
+    border: 1px solid rgba(45,226,201,.4);
+    border-radius: 6px;
+    background: rgba(45,226,201,.06);
+  }
+
+  .logfeed { margin-top: 16px; border-top: 1px dashed rgba(255,64,217,.35); padding-top: 14px; }
+  .feed-label {
+    font-family: 'Silkscreen', monospace;
+    font-size: 10px;
+    letter-spacing: .18em;
+    color: var(--magenta);
+    text-shadow: 0 0 8px rgba(255,64,217,.5);
+    margin-bottom: 8px;
+  }
+  .loglines {
+    font-family: 'VT323', monospace;
+    font-size: 19px;
+    line-height: 1.45;
+    height: 122px;
+    overflow-y: auto;
+    color: #e9d9ff;
+    scrollbar-width: thin;
+    scrollbar-color: var(--magenta) transparent;
+  }
+  .loglines .t { color: #7e6fb5; }
+  .loglines .tag-scan { color: var(--teal); }
+  .loglines .tag-hit { color: var(--acid); }
+  .loglines .tag-sys { color: var(--magenta); }
+  .loglines .tag-warn { color: var(--pink); }
+  .loglines .tag-ok { color: var(--chrome-mid); }
+  .cursor::after { content: '█'; color: var(--acid); animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ===== gel pill buttons ===== */
+  .controls { display: flex; gap: 14px; padding: 0 20px 24px; flex-wrap: wrap; }
+  .jelly {
+    flex: 1;
+    min-width: 150px;
+    position: relative;
+    border: none;
+    cursor: pointer;
+    padding: 16px 10px 15px;
+    border-radius: 999px;
+    font-family: 'Chakra Petch', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: .18em;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0,0,30,.7);
+    background: linear-gradient(180deg,
+      color-mix(in srgb, var(--jc) 55%, white) 0%,
+      var(--jc) 45%,
+      color-mix(in srgb, var(--jc) 60%, black) 100%);
+    box-shadow:
+      0 6px 16px color-mix(in srgb, var(--jc) 45%, transparent),
+      0 1px 0 rgba(255,255,255,.6) inset,
+      0 -6px 12px rgba(0,0,40,.35) inset;
+    transition: transform .12s ease, filter .12s ease, box-shadow .12s ease;
+    overflow: hidden;
+  }
+  .jelly::before {
+    content: '';
+    position: absolute;
+    left: 8%; right: 8%; top: 6%;
+    height: 42%;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,0));
+    pointer-events: none;
+  }
+  .jelly:hover {
+    filter: brightness(1.12) saturate(1.1);
+    transform: translateY(-2px);
+    box-shadow:
+      0 10px 22px color-mix(in srgb, var(--jc) 60%, transparent),
+      0 0 18px color-mix(in srgb, var(--jc) 60%, transparent),
+      0 1px 0 rgba(255,255,255,.6) inset,
+      0 -6px 12px rgba(0,0,40,.35) inset;
+  }
+  .jelly:active { transform: translateY(1px) scale(.985); }
+  .jelly:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+  .jelly:disabled { filter: grayscale(.7) brightness(.7); cursor: not-allowed; transform: none; }
+  .jelly.start { --jc: #46c916; }
+  .jelly.stop  { --jc: #f2199e; }
+  .jelly.log   { --jc: #12a9d8; }
+
+  /* ===== ticker ===== */
+  .ticker {
+    border-top: 1px solid rgba(255,255,255,.12);
+    background: rgba(0,0,20,.45);
+    padding: 7px 0;
+    overflow: hidden;
+    white-space: nowrap;
+    font-family: 'VT323', monospace;
+    font-size: 17px;
+    color: #b9a6e8;
+  }
+  .ticker-track { display: inline-block; padding-left: 100%; animation: ticker 26s linear infinite; }
+  @keyframes ticker { to { transform: translateX(-100%); } }
+  .ticker b { color: var(--teal); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .chrome-sky, .titlebar::after, .lamp .led, .sticker, .ticker-track,
+    .wordmark.glitching::before, .wordmark.glitching::after { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="chrome-sky"></div>
+<div class="grid-floor"></div>
+
+<div class="device">
+
+  <!-- die-cut zine stickers -->
+  <svg class="sticker smiley" width="74" height="74" viewBox="0 0 74 74" aria-hidden="true">
+    <circle cx="37" cy="37" r="34" fill="#fff"/>
+    <circle cx="37" cy="37" r="29" fill="#ffd23f" stroke="#190f3e" stroke-width="2.5"/>
+    <circle cx="27" cy="31" r="4" fill="#190f3e"/>
+    <circle cx="47" cy="31" r="4" fill="#190f3e"/>
+    <path d="M24 43 q13 12 26 0" stroke="#190f3e" stroke-width="3" fill="none" stroke-linecap="round"/>
+  </svg>
+  <svg class="sticker star" width="66" height="66" viewBox="0 0 66 66" aria-hidden="true">
+    <path d="M33 3 L41 24 L63 25 L45 38 L52 60 L33 47 L14 60 L21 38 L3 25 L25 24 Z" fill="#fff"/>
+    <path d="M33 9 L39.5 26 L57 27 L43 37.5 L48.5 55 L33 44.5 L17.5 55 L23 37.5 L9 27 L26.5 26 Z"
+          fill="url(#starGrad)" stroke="#190f3e" stroke-width="2"/>
+    <defs>
+      <linearGradient id="starGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#2de2c9"/><stop offset=".5" stop-color="#3d7bff"/><stop offset="1" stop-color="#ff40d9"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <div class="device-inner">
+
+    <div class="titlebar">
+      <span class="app-id">RLC WATCH <em>//</em> Y2K JOB RADAR</span>
+      <div class="win-buttons"><span></span><span></span><span></span></div>
+    </div>
+
+    <div class="hero">
+      <h1 class="wordmark" id="wordmark" data-text="LADLE ME JOBS">LADLE ME JOBS</h1>
+      <div class="tagline">chrome alerts for residence life postings</div>
+    </div>
+
+    <div class="console">
+      <div class="console-inner">
+        <div class="status-row">
+          <div class="lamp" id="lamp">
+            <span class="led" id="led"></span>
+            <span class="label" id="statusLabel">CONNECTING...</span>
+          </div>
+          <div class="status-meta">
+            <span id="detailText">Checking watcher status&hellip;</span><br>
+            Process count: <span class="proc-count" id="procCount">-</span>
+          </div>
+        </div>
+
+        <div class="logfeed">
+          <div class="feed-label">LOG FEED</div>
+          <div class="loglines" id="loglines"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="jelly start" id="btnStart">&#9654; START</button>
+      <button class="jelly stop" id="btnStop">&#9632; STOP</button>
+      <button class="jelly log" id="btnLog">&#9776; OPEN LOG</button>
+    </div>
+
+    <div class="ticker">
+      <div class="ticker-track" id="tickerTrack">
+        <b>++</b> RLC WATCH <b>++</b> connecting to local control server <b>++</b>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const el = id => document.getElementById(id);
+  const loglines = el('loglines');
+
+  function setStatusText(label, detail, running) {
+    el('statusLabel').textContent = label;
+
+    const detailEl = el('detailText');
+    detailEl.textContent = '';
+    detailEl.appendChild(document.createTextNode(detail + ' '));
+
+    const lamp = el('lamp'), led = el('led');
+    if (running) {
+      lamp.style.borderColor = 'rgba(157,255,63,.5)';
+      el('statusLabel').style.color = 'var(--acid)';
+      led.style.animationPlayState = 'running';
+      led.style.background = 'radial-gradient(circle at 32% 28%, #fff, var(--acid) 55%, #3a7a00)';
+      led.style.boxShadow = '0 0 12px var(--acid)';
+    } else {
+      lamp.style.borderColor = 'rgba(255,64,217,.5)';
+      el('statusLabel').style.color = 'var(--magenta)';
+      led.style.animationPlayState = 'paused';
+      led.style.background = 'radial-gradient(circle at 32% 28%, #fff, var(--magenta) 55%, #6b0044)';
+      led.style.boxShadow = '0 0 12px var(--magenta)';
+    }
+  }
+
+  function describeStatus(status) {
+    if (status.scraperRunning && status.watchdogRunning) {
+      return 'Watchdog and scraper are active.';
+    }
+    if (status.scraperRunning) {
+      return 'Scraper is checking jobs, but watchdog is not guarding restarts.';
+    }
+    if (status.watchdogRunning) {
+      return 'Watchdog is present, but no scraper loop was detected.';
+    }
+    return 'No scraper or watchdog process is running. Press START to resume alerts.';
+  }
+
+  async function refreshStatus() {
+    try {
+      const res = await fetch('/api/status');
+      const status = await res.json();
+      if (status.error) throw new Error(status.error);
+
+      const label = status.scraperRunning ? 'ONLINE // Running' : 'OFFLINE // Stopped';
+      setStatusText(label, describeStatus(status), status.scraperRunning);
+      el('procCount').textContent = status.processCount;
+      el('btnStart').disabled = status.running;
+      el('btnStop').disabled = !status.running;
+
+      const tickerText = `++ RLC WATCH // LADLE ME JOBS ++ monitoring ${status.boardCount} boards ++ status: ${status.text} ++ processes: ${status.processCount} ++`;
+      el('tickerTrack').innerHTML = tickerText.replace(/\+\+/g, '<b>++</b>');
+    } catch (err) {
+      setStatusText('OFFLINE // No connection', 'Could not reach the local control server.', false);
+    }
+  }
+
+  async function refreshLog() {
+    try {
+      const res = await fetch('/api/log?lines=40');
+      const data = await res.json();
+      loglines.innerHTML = '';
+      const lines = data.lines || [];
+      if (lines.length === 0) {
+        const div = document.createElement('div');
+        div.textContent = 'log file has not been created yet.';
+        loglines.appendChild(div);
+        return;
+      }
+      lines.forEach((entry, i) => {
+        const div = document.createElement('div');
+        if (i === lines.length - 1) div.classList.add('cursor');
+        const tagSpan = document.createElement('span');
+        tagSpan.className = `tag-${entry.tag}`;
+        tagSpan.textContent = entry.text;
+        div.appendChild(tagSpan);
+        loglines.appendChild(div);
+      });
+      loglines.scrollTop = loglines.scrollHeight;
+    } catch (err) {
+      // leave existing feed as-is on a transient failure
+    }
+  }
+
+  el('btnStart').addEventListener('click', async () => {
+    el('btnStart').disabled = true;
+    await fetch('/api/start', { method: 'POST' });
+    await refreshStatus();
+  });
+
+  el('btnStop').addEventListener('click', async () => {
+    el('btnStop').disabled = true;
+    await fetch('/api/stop', { method: 'POST' });
+    await refreshStatus();
+  });
+
+  el('btnLog').addEventListener('click', () => {
+    window.open('/log', '_blank');
+  });
+
+  // occasional, brief RGB-split glitch on the wordmark
+  function glitchLoop() {
+    const wm = el('wordmark');
+    wm.classList.add('glitching');
+    setTimeout(() => wm.classList.remove('glitching'), 340);
+    setTimeout(glitchLoop, 6000 + Math.random() * 8000);
+  }
+
+  refreshStatus();
+  refreshLog();
+  setInterval(refreshStatus, 4000);
+  setInterval(refreshLog, 4000);
+
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    setTimeout(glitchLoop, 2500);
+  }
+</script>
+
+</body>
+</html>
