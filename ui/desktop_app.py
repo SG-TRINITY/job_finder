@@ -20,6 +20,7 @@ import io
 import socket
 import sys
 import threading
+from datetime import datetime
 
 import pystray
 import webview
@@ -27,6 +28,18 @@ from PIL import Image, ImageDraw
 
 import server
 from server import PORT, create_server
+
+APP_LOG_FILE = server.ROOT / "logs" / "rlc-watch-app.log"
+
+
+def _log(message: str) -> None:
+    try:
+        APP_LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with APP_LOG_FILE.open("a", encoding="utf-8") as fh:
+            fh.write(f"[{timestamp}] {message}\n")
+    except Exception:
+        pass
 
 
 def _port_in_use() -> bool:
@@ -37,9 +50,18 @@ def _port_in_use() -> bool:
 def _wake_existing_instance():
     import urllib.request
     try:
-        urllib.request.urlopen(f"http://127.0.0.1:{PORT}/api/show", timeout=3)
+        request = urllib.request.Request(f"http://127.0.0.1:{PORT}/api/show", method="POST")
+        urllib.request.urlopen(request, timeout=3)
     except Exception:
         pass
+
+
+def _ensure_watcher_running() -> None:
+    try:
+        status = server.run_control("Start")
+        _log(f"Auto-start watcher: {status.get('detail', status.get('text', 'ok'))}")
+    except Exception as exc:
+        _log(f"Auto-start watcher failed: {exc}")
 
 
 def _make_tray_image() -> Image.Image:
@@ -54,11 +76,14 @@ def _make_tray_image() -> Image.Image:
 def main():
     if _port_in_use():
         _wake_existing_instance()
+        _ensure_watcher_running()
         return
 
+    _log("Desktop app starting")
     http_server = create_server()
     thread = threading.Thread(target=http_server.serve_forever, daemon=True)
     thread.start()
+    threading.Thread(target=_ensure_watcher_running, daemon=True).start()
 
     window = webview.create_window(
         "Ladle Me Jobs",

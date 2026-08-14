@@ -9,6 +9,6 @@ command = "C:\Python313\pythonw.exe " & Chr(34) & appPath & Chr(34)
 ' hidden), so no window/taskbar flash of any kind before the app's own
 ' native window (via pywebview) appears. Closing that window minimizes to
 ' the tray; use Exit from the tray menu to actually quit. The
-' scraper/watchdog loop keeps running independently once started from the
-' UI - STOP in the UI is what actually stops it.
+' desktop app starts the scraper/watchdog loop automatically if needed.
+' STOP in the UI is what actually stops it.
 shell.Run command, 0, False
