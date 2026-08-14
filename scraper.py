@@ -78,7 +78,9 @@ GENERAL_BOARD_ALLOW_TERMS = [
 GENERAL_BOARD_DENY_TERMS = [
     r"case manager", r"case management", r"caseworker", r"social worker",
     r"support worker", r"community living", r"community services",
-    r"group home", r"youth", r"children", r"shelter", r"supportive housing",
+    r"community organization", r"non[- ]profit", r"group home", r"youth",
+    r"children", r"shelter", r"supportive housing", r"affordable housing",
+    r"transitional housing", r"homeless",
     r"mental health", r"addiction", r"crisis", r"hospital", r"long[- ]term care",
     r"retirement", r"seniors?", r"employee housing", r"hospitality",
     r"hotel", r"resort", r"recreation program",
