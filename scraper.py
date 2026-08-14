@@ -11,6 +11,7 @@ How it works:
 Runs locally only (no cloud/CI). Two ways to use it:
   One-shot:  python scraper.py
   Dry run:   python scraper.py --dry-run       (prints matches, no email/SMS/state write)
+  Test:      python scraper.py --test-alerts   (sends email + Telegram probes)
   Loop:      python scraper.py --loop --interval 30   (checks every 30 min, forever)
 
 Credentials (Gmail app password, SMS gateway address) go in local_settings.json,
@@ -370,41 +371,89 @@ def load_local_settings() -> None:
         os.environ.setdefault(k, value)
 
 
-# ---- email / SMS ------------------------------------------------------------
+# ---- alerts ----------------------------------------------------------------
 
-def send_email(new_jobs: list[dict]) -> None:
+def email_recipient() -> str | None:
+    return os.environ.get("ALERT_EMAIL_TO") or os.environ.get("ALERT_EMAIL_USER")
+
+
+def send_plain_email(subject: str, body: str, ok_message: str | None = None) -> bool:
     user = os.environ.get("ALERT_EMAIL_USER")
     pw = os.environ.get("ALERT_EMAIL_APP_PASSWORD")
-    to = os.environ.get("ALERT_EMAIL_TO", user)
-    if not user or not pw:
-        print("[warn] ALERT_EMAIL_USER / ALERT_EMAIL_APP_PASSWORD not set; printing instead.")
-        for j in new_jobs:
-            print(f'  NEW: {j["title"]} - {j["board"]} - {j["link"]}')
-        return
-
-    lines = [f'* {j["title"]}\n  {j["board"]}\n  {j["link"]}\n' for j in new_jobs]
-    body = "New residence life posting(s) found:\n\n" + "\n".join(lines)
-    subject = f"[RLC Watch] {len(new_jobs)} new posting{'s' if len(new_jobs) > 1 else ''}"
+    to = email_recipient()
+    if not user or not pw or not to:
+        print("[warn] ALERT_EMAIL_USER / ALERT_EMAIL_APP_PASSWORD / ALERT_EMAIL_TO not set.")
+        return False
 
     msg = MIMEText(body)
     msg["Subject"] = subject
     msg["From"] = user
     msg["To"] = to
 
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
-        s.login(user, pw)
-        s.sendmail(user, [to], msg.as_string())
-    print(f"[ok] emailed {len(new_jobs)} new posting(s) to {to}")
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
+            s.login(user, pw)
+            s.sendmail(user, [to], msg.as_string())
+        print(ok_message or f"[ok] emailed to {to}")
+        return True
+    except Exception as e:
+        print(f"  [warn] email send failed: {e}", file=sys.stderr)
+        return False
 
 
-def send_sms(new_jobs: list[dict]) -> None:
+def send_telegram_text(body: str) -> bool:
+    token = os.environ.get("ALERT_TELEGRAM_BOT_TOKEN")
+    chat_id = os.environ.get("ALERT_TELEGRAM_CHAT_ID")
+    if not token or not chat_id:
+        return False
+
+    if len(body) > 3900:
+        body = body[:3897] + "..."
+
+    try:
+        r = requests.post(
+            f"https://api.telegram.org/bot{token}/sendMessage",
+            json={"chat_id": chat_id, "text": body},
+            timeout=15,
+        )
+        r.raise_for_status()
+        data = r.json()
+        if not data.get("ok"):
+            raise RuntimeError(data.get("description", "Telegram API returned ok=false"))
+        print("[ok] sent Telegram push")
+        return True
+    except Exception as e:
+        print(f"  [warn] Telegram send failed: {e}", file=sys.stderr)
+        return False
+
+
+def send_email(new_jobs: list[dict]) -> bool:
+    user = os.environ.get("ALERT_EMAIL_USER")
+    pw = os.environ.get("ALERT_EMAIL_APP_PASSWORD")
+    to = email_recipient()
+    if not user or not pw:
+        print("[warn] ALERT_EMAIL_USER / ALERT_EMAIL_APP_PASSWORD not set; printing instead.")
+        for j in new_jobs:
+            print(f'  NEW: {j["title"]} - {j["board"]} - {j["link"]}')
+        return False
+    if not to:
+        print("[warn] ALERT_EMAIL_TO not set.")
+        return False
+
+    lines = [f'* {j["title"]}\n  {j["board"]}\n  {j["link"]}\n' for j in new_jobs]
+    body = "New residence life posting(s) found:\n\n" + "\n".join(lines)
+    subject = f"[RLC Watch] {len(new_jobs)} new posting{'s' if len(new_jobs) > 1 else ''}"
+    return send_plain_email(subject, body, f"[ok] emailed {len(new_jobs)} new posting(s) to {to}")
+
+
+def send_sms(new_jobs: list[dict]) -> bool:
     """Text via email-to-SMS gateway (e.g. 5551234567@txt.bell.ca in ALERT_SMS_TO).
     Short body only - full details go out via send_email instead."""
     user = os.environ.get("ALERT_EMAIL_USER")
     pw = os.environ.get("ALERT_EMAIL_APP_PASSWORD")
     sms_to = os.environ.get("ALERT_SMS_TO")
     if not sms_to or not user or not pw:
-        return
+        return False
 
     titles = ", ".join(j["title"] for j in new_jobs[:3])
     body = f"RLC Watch: {len(new_jobs)} new posting(s) - {titles}. Check email for links."
@@ -419,39 +468,22 @@ def send_sms(new_jobs: list[dict]) -> None:
             s.login(user, pw)
             s.sendmail(user, [sms_to], msg.as_string())
         print(f"[ok] texted {sms_to}")
+        return True
     except Exception as e:
         print(f"  [warn] SMS send failed: {e}", file=sys.stderr)
+        return False
 
 
-def send_telegram(new_jobs: list[dict]) -> None:
+def send_telegram(new_jobs: list[dict], include_links: bool = False) -> bool:
     """Optional phone push notification via Telegram.
     Short body only - full details and links go out by email."""
-    token = os.environ.get("ALERT_TELEGRAM_BOT_TOKEN")
-    chat_id = os.environ.get("ALERT_TELEGRAM_CHAT_ID")
-    if not token or not chat_id:
-        return
-
-    titles = ", ".join(j["title"] for j in new_jobs[:3])
-    body = (
-        f"RLC Watch: {len(new_jobs)} new posting(s). "
-        f"{titles}. Check soupsearching@gmail.com for links."
-    )
-    if len(body) > 900:
-        body = body[:897] + "..."
-
-    try:
-        r = requests.post(
-            f"https://api.telegram.org/bot{token}/sendMessage",
-            json={"chat_id": chat_id, "text": body},
-            timeout=15,
-        )
-        r.raise_for_status()
-        data = r.json()
-        if not data.get("ok"):
-            raise RuntimeError(data.get("description", "Telegram API returned ok=false"))
-        print("[ok] sent Telegram push")
-    except Exception as e:
-        print(f"  [warn] Telegram send failed: {e}", file=sys.stderr)
+    titles = "\n".join(f'- {j["title"]} ({j["board"]})' for j in new_jobs[:5])
+    destination = email_recipient() or "your email"
+    body = f"RLC Watch: {len(new_jobs)} new posting(s).\n{titles}\n\nCheck {destination} for full links."
+    if include_links:
+        lines = [f'- {j["title"]}\n  {j["board"]}\n  {j["link"]}' for j in new_jobs[:8]]
+        body = "RLC Watch alert. Email did not confirm, so here are the links:\n\n" + "\n\n".join(lines)
+    return send_telegram_text(body)
 
 
 def status_sms_hours() -> float:
@@ -504,12 +536,7 @@ def status_email_due(state: dict, now_dt: datetime, hours: float) -> bool:
 
 def send_status_email(enabled_board_count: int) -> bool:
     """Optional routine email confirming the watcher is alive."""
-    user = os.environ.get("ALERT_EMAIL_USER")
-    pw = os.environ.get("ALERT_EMAIL_APP_PASSWORD")
-    to = os.environ.get("ALERT_EMAIL_TO", user)
-    if not user or not pw:
-        return False
-
+    to = email_recipient()
     general_boards = "on" if general_job_boards_enabled() else "off"
     body = (
         "RLC Watch is still running.\n\n"
@@ -518,20 +545,7 @@ def send_status_email(enabled_board_count: int) -> bool:
         f"General boards: {general_boards}.\n"
     )
 
-    msg = MIMEText(body)
-    msg["Subject"] = "[RLC Watch] Still running"
-    msg["From"] = user
-    msg["To"] = to
-
-    try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
-            s.login(user, pw)
-            s.sendmail(user, [to], msg.as_string())
-        print(f"[ok] sent status email to {to}")
-        return True
-    except Exception as e:
-        print(f"  [warn] status email send failed: {e}", file=sys.stderr)
-        return False
+    return send_plain_email("[RLC Watch] Still running", body, f"[ok] sent status email to {to}")
 
 
 def send_status_sms(enabled_board_count: int) -> bool:
@@ -564,6 +578,33 @@ def send_status_sms(enabled_board_count: int) -> bool:
         return False
 
 
+def send_test_alerts() -> bool:
+    """Send a real email + Telegram probe without scanning or touching state."""
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    to = email_recipient()
+    body = (
+        "RLC Watch test alert.\n\n"
+        f"Sent at {timestamp} local time.\n"
+        "If you can see this, Gmail SMTP is working from the local watcher.\n"
+    )
+    email_ok = send_plain_email("[RLC Watch] Test alert", body, f"[ok] sent test email to {to}")
+
+    telegram_ok = False
+    if os.environ.get("ALERT_TELEGRAM_BOT_TOKEN") and os.environ.get("ALERT_TELEGRAM_CHAT_ID"):
+        telegram_ok = send_telegram_text(
+            f"RLC Watch test alert sent at {timestamp}. Email target: {to or 'not configured'}."
+        )
+    else:
+        print("  [warn] Telegram token/chat ID not set; test Telegram skipped", file=sys.stderr)
+
+    if email_ok and telegram_ok:
+        print("[ok] test alerts passed")
+        return True
+
+    print("  [warn] one or more test alerts failed", file=sys.stderr)
+    return False
+
+
 # ---- main -----------------------------------------------------------------
 
 def run_once(dry_run: bool) -> None:
@@ -581,18 +622,22 @@ def run_once(dry_run: bool) -> None:
             if dry_run:
                 print(f"  match: {m['title']} -> {m['link']}")
             elif fp not in state["seen"]:
-                state["seen"][fp] = {**m, "first_seen": now}
                 all_new.append(m)
 
     if dry_run:
         return
     if all_new:
-        send_email(all_new)
-        send_sms(all_new)
-        send_telegram(all_new)
-        if status_sms_hours() > 0:
+        email_ok = send_email(all_new)
+        sms_ok = send_sms(all_new)
+        telegram_ok = send_telegram(all_new, include_links=not email_ok)
+        if email_ok or sms_ok or telegram_ok:
+            for m in all_new:
+                state["seen"][fingerprint(m)] = {**m, "first_seen": now}
+        else:
+            print("  [warn] no alert channel confirmed delivery; will retry these postings next cycle", file=sys.stderr)
+        if sms_ok and status_sms_hours() > 0:
             state["last_status_sms"] = now
-        if status_email_hours() > 0:
+        if email_ok and status_email_hours() > 0:
             state["last_status_email"] = now
     else:
         print("[ok] no new postings")
@@ -608,11 +653,15 @@ def run_once(dry_run: bool) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true", help="print matches, no email/SMS/state")
+    parser.add_argument("--test-alerts", action="store_true", help="send a test email and Telegram alert, then exit")
     parser.add_argument("--loop", action="store_true", help="run continuously instead of once")
     parser.add_argument("--interval", type=int, default=30, help="minutes between checks in --loop mode (default 30)")
     args = parser.parse_args()
 
     load_local_settings()
+
+    if args.test_alerts:
+        raise SystemExit(0 if send_test_alerts() else 1)
 
     if not args.loop:
         run_once(args.dry_run)
