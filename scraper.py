@@ -591,8 +591,12 @@ def send_test_alerts() -> bool:
     )
     email_ok = send_plain_email("[RLC Watch] Test alert", body, f"[ok] sent test email to {to}")
 
-    telegram_ok = False
-    if os.environ.get("ALERT_TELEGRAM_BOT_TOKEN") and os.environ.get("ALERT_TELEGRAM_CHAT_ID"):
+    telegram_configured = bool(
+        os.environ.get("ALERT_TELEGRAM_BOT_TOKEN")
+        and os.environ.get("ALERT_TELEGRAM_CHAT_ID")
+    )
+    telegram_ok = True
+    if telegram_configured:
         telegram_ok = send_telegram_text(
             f"RLC Watch test alert sent at {timestamp}. Email target: {to or 'not configured'}."
         )

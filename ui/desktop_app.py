@@ -30,6 +30,8 @@ import server
 from server import PORT, create_server
 
 APP_LOG_FILE = server.ROOT / "logs" / "rlc-watch-app.log"
+ICON_PNG = server.UI_DIR / "assets" / "ladle-me-jobs.png"
+ICON_ICO = server.UI_DIR / "assets" / "ladle-me-jobs.ico"
 
 
 def _log(message: str) -> None:
@@ -65,8 +67,14 @@ def _ensure_watcher_running() -> None:
 
 
 def _make_tray_image() -> Image.Image:
-    # Small lime-on-void square, matching the app's Y2K accent colour -
-    # no external icon asset needed.
+    try:
+        with Image.open(ICON_PNG) as source:
+            return source.convert("RGBA").resize((64, 64), Image.Resampling.LANCZOS)
+    except (OSError, ValueError):
+        _log(f"Could not load app icon at {ICON_PNG}; using fallback tray icon")
+
+    # Keep a simple built-in fallback so a missing asset never prevents the
+    # controller from starting.
     img = Image.new("RGBA", (64, 64), (14, 5, 38, 255))
     draw = ImageDraw.Draw(img)
     draw.ellipse((10, 10, 54, 54), fill=(157, 255, 63, 255))
@@ -128,7 +136,8 @@ def main():
 
     threading.Thread(target=start_tray, daemon=True).start()
 
-    webview.start()
+    icon_path = str(ICON_ICO) if ICON_ICO.exists() else None
+    webview.start(icon=icon_path)
 
 
 if __name__ == "__main__":

@@ -24,6 +24,7 @@ UI_DIR = Path(__file__).resolve().parent
 CONTROL_SCRIPT = ROOT / "rlc_watch_control.ps1"
 LOG_FILE = ROOT / "logs" / "rlc-watch.log"
 BOARDS_FILE = ROOT / "boards.json"
+APP_ICON_FILE = UI_DIR / "assets" / "ladle-me-jobs.ico"
 PORT = 8787
 
 # Set by desktop_app.py so a second launch attempt (which finds the port
@@ -96,6 +97,8 @@ class Handler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         if parsed.path == "/":
             self._serve_file(UI_DIR / "index.html", "text/html")
+        elif parsed.path == "/favicon.ico":
+            self._serve_file(APP_ICON_FILE, "image/x-icon")
         elif parsed.path == "/api/status":
             try:
                 status = run_control("Status")
@@ -137,7 +140,10 @@ class Handler(BaseHTTPRequestHandler):
             return
         body = path.read_bytes()
         self.send_response(200)
-        self.send_header("Content-Type", f"{content_type}; charset=utf-8")
+        content_type_header = content_type
+        if content_type.startswith("text/"):
+            content_type_header = f"{content_type}; charset=utf-8"
+        self.send_header("Content-Type", content_type_header)
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
