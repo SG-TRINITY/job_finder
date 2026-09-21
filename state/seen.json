@@ -1,5 +1,5 @@
 {
-  "last_status_email": "2026-09-11T19:21:19.910402+00:00",
+  "last_status_email": "2026-09-21T02:14:39.095449+00:00",
   "last_status_sms": "2026-07-07T21:04:53.972706+00:00",
   "seen": {
     "01fc9d2a690dc4c5": {
@@ -7,6 +7,12 @@
       "first_seen": "2026-08-06T23:28:19.697193+00:00",
       "link": "https://ca.linkedin.com/jobs/view/residence-life-coordinator-at-mount-royal-university-4448458331?trk=public_jobs_topcard-title",
       "title": "Residence Life Coordinator"
+    },
+    "042581795e9c1e42": {
+      "board": "Glassdoor Canada",
+      "first_seen": "2026-09-14T21:40:34.332768+00:00",
+      "link": "https://fr.glassdoor.ca/job-listing/residence-orientation-coordinator-university-of-western-ontario-JV_IC2285502_KO0,33_KE34,63.htm?jl=1010262895008",
+      "title": "Residence Orientation Coordinator"
     },
     "0462b6f3feae4714": {
       "board": "Glassdoor Canada",
@@ -67,6 +73,12 @@
       "first_seen": "2026-07-07T19:47:41.135957+00:00",
       "link": "https://www.linkedin.com/jobs/residence-manager-jobs?trk=public_jobs_linkster_link",
       "title": "Residence Manager jobs"
+    },
+    "16c731b8324f7782": {
+      "board": "Indeed Canada",
+      "first_seen": "2026-09-12T12:43:44.416669+00:00",
+      "link": "https://ca.indeed.com/rc/clk?jk=f7ce60233b26d2da&bb=T3gQBwOZhfMyIkNZpv2V3CAymNPeher50QaN51G0aidjqCwHFAkqT56t5-U_zKcwydqxRwa3fN7Uigr2gx_KUbVGS6v1o7EZAXZY8-uNUNffYw-_Ux22jKCjyyrl_xWa&xkcb=SoDh67M2eK9KNLRSgp0PbzkdCdPP&fccid=986361104086c3ae&vjs=3",
+      "title": "Residence Education Coordinator"
     },
     "192684cba6fa2f38": {
       "board": "Dalhousie University",
@@ -242,11 +254,23 @@
       "link": "https://campusliv.hrmdirect.com/employment/job-opening.php?req=3755707&req_loc=1382865&&cust_sort1=170999&#job",
       "title": "Residence Life Coordinator"
     },
+    "60a5f63a7502de3d": {
+      "board": "Indeed Canada",
+      "first_seen": "2026-09-15T00:17:42.725226+00:00",
+      "link": "https://ca.indeed.com/rc/clk?jk=6f6c41abd8f69e54&bb=uLfoGflijhsNmlc9f6xj-pzrDGTQNEtPIJAgcZtZ_L15_qjLUPzIKynfOxT5vIwpdI03t36xpOuRB2elCo7bMfhokEpwX05G07kzJSDTEuIupB7PnvMakCAt47-Q-rFt-vr5JQofk_HiPXSSIKf_SvQMN3P2iT0xeJt2AMegroQ%3D&xkcb=SoAV67M2eRGJmiRODx0FbzkdCdPP&fccid=ca97c94e665c20fe&vjs=3",
+      "title": "Residence Orientation Coordinator"
+    },
     "62961568aca0ef7c": {
       "board": "Western University",
       "first_seen": "2026-07-30T17:11:24.881497+00:00",
       "link": "https://recruit.uwo.ca/psc/hrprdwebER/EMPLOYEE/HRMS/c/HRS_HRAM_FL.HRS_CG_SEARCH_FL.GBL?Page=HRS_APP_SCHJOB_FL&Action=U",
       "title": "Residence Area Manager"
+    },
+    "62f0cf35df56cf0c": {
+      "board": "Western University",
+      "first_seen": "2026-09-14T15:00:31.994187+00:00",
+      "link": "https://recruit.uwo.ca/psc/hrprdwebER/EMPLOYEE/HRMS/c/HRS_HRAM_FL.HRS_CG_SEARCH_FL.GBL?Page=HRS_APP_SCHJOB_FL&Action=U",
+      "title": "Job Title Residence Orientation Coordinator"
     },
     "633f149f8fb81dba": {
       "board": "Glassdoor Canada",
@@ -271,6 +295,12 @@
       "first_seen": "2026-08-14T15:15:04.240792+00:00",
       "link": "https://fr.glassdoor.ca/job-listing/residence-life-coordinator-university-of-western-ontario-JV_IC2285502_KO0,26_KE27,56.htm?jl=1010229752840",
       "title": "Residence Life Coordinator"
+    },
+    "65d4dbe3fa59d23f": {
+      "board": "Carleton University",
+      "first_seen": "2026-09-12T23:53:53.487246+00:00",
+      "link": "https://carleton.njoyn.com/cl2/xweb/xweb.asp?NTKN=c&clid=53443&Page=JobDetails&Jobid=J0826-0266&BRID=382111&lang=1",
+      "title": "Residence Manager"
     },
     "6afe12f9cba1cc37": {
       "board": "Glassdoor Canada",
@@ -344,11 +374,29 @@
       "link": "https://fr.glassdoor.ca/job-listing/residence-life-coordinator-york-university-JV_KO0,26_KE27,42.htm?jl=1010215151148",
       "title": "Residence Life Coordinator"
     },
+    "8db646ca6e7357d4": {
+      "board": "Western University",
+      "first_seen": "2026-09-14T15:00:31.994187+00:00",
+      "link": "https://recruit.uwo.ca/psc/hrprdwebER/EMPLOYEE/HRMS/c/HRS_HRAM_FL.HRS_CG_SEARCH_FL.GBL?Page=HRS_APP_SCHJOB_FL&Action=U",
+      "title": "Job Title Residence Orientation Coordinator Job ID 44535 Department Residence Engagement Employee Group Student Close Date 2026/09/27"
+    },
+    "905a1a03957792e5": {
+      "board": "Glassdoor Canada",
+      "first_seen": "2026-09-13T07:03:14.065330+00:00",
+      "link": "https://fr.glassdoor.ca/job-listing/residence-education-coordinator-university-of-toronto-JV_KO0,31_KE32,53.htm?jl=1010260144981",
+      "title": "Residence Education Coordinator"
+    },
     "909674c5341a0489": {
       "board": "Indeed Canada",
       "first_seen": "2026-09-11T09:21:03.648203+00:00",
       "link": "https://ca.indeed.com/viewjob?jk=fedcba9876543210",
       "title": "Residence Engagement Coordinator - CLC"
+    },
+    "90ae896d0a47a6c9": {
+      "board": "Indeed Canada",
+      "first_seen": "2026-09-12T16:17:30.418971+00:00",
+      "link": "https://ca.indeed.com/viewjob?jk=789abcdef0123456",
+      "title": "Residence Manager"
     },
     "939c3310faa190eb": {
       "board": "LinkedIn Jobs",
@@ -475,6 +523,12 @@
       "first_seen": "2026-07-07T19:16:28.099750+00:00",
       "link": "https://ca.linkedin.com/jobs/view/residence-life-coordinator-at-university-of-niagara-falls-canada-4399695949?trk=public_jobs_topcard-title",
       "title": "Residence Life Coordinator"
+    },
+    "c355226a3ab38e6c": {
+      "board": "Western University",
+      "first_seen": "2026-09-14T15:00:31.994187+00:00",
+      "link": "https://recruit.uwo.ca/psc/hrprdwebER/EMPLOYEE/HRMS/c/HRS_HRAM_FL.HRS_CG_SEARCH_FL.GBL?Page=HRS_APP_SCHJOB_FL&Action=U",
+      "title": "Residence Orientation Coordinator"
     },
     "c68846b42da46605": {
       "board": "Brock University - Workday",

@@ -3,15 +3,21 @@ $ErrorActionPreference = "Stop"
 
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ControlScript = Join-Path $Root "rlc_watch_control.ps1"
+$HiddenLauncher = Join-Path $Root "run_keepalive_hidden.vbs"
 $TaskName = "RLC Watch Keepalive"
 
 if (-not (Test-Path -LiteralPath $ControlScript)) {
     throw "Missing $ControlScript"
 }
 
-$powerShellExe = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
-$actionArgs = '-NoLogo -NoProfile -ExecutionPolicy Bypass -File "' + $ControlScript + '" Start'
-$action = New-ScheduledTaskAction -Execute $powerShellExe -Argument $actionArgs -WorkingDirectory $Root
+if (-not (Test-Path -LiteralPath $HiddenLauncher)) {
+    throw "Missing $HiddenLauncher"
+}
+
+# WScript has no console window, and launches PowerShell hidden from creation.
+$wscriptExe = Join-Path $env:SystemRoot "System32\wscript.exe"
+$actionArgs = '//B //Nologo "' + $HiddenLauncher + '"'
+$action = New-ScheduledTaskAction -Execute $wscriptExe -Argument $actionArgs -WorkingDirectory $Root
 
 $startAt = (Get-Date).AddMinutes(1)
 $trigger = New-ScheduledTaskTrigger `
